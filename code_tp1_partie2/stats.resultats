@@ -1,0 +1,11 @@
+Temps écoulé appel normal (power: 1): 13429 ns
+Temps écoulé appel Local RMI (power: 1): 224276 ns
+Temps écoulé appel Distant RMI (power: 1): 85960539 ns
+Temps écoulé appel normal (power: 2): 13424 ns
+Temps écoulé appel Local RMI (power: 2): 248189 ns
+Temps écoulé appel Distant RMI (power: 2): 81640688 ns
+Temps écoulé appel normal (power: 3): 12851 ns
+Temps écoulé appel Local RMI (power: 3): 245544 ns
+Temps écoulé appel Distant RMI (power: 3): 82694877 ns
+Temps écoulé appel normal (power: 4): 11714 ns
+Temps écoulé appel Local RMI (power: 4): 242117 ns
