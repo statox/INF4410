@@ -86,6 +86,9 @@ public class Client {
             case "push": 
                 push(this.argumentToSend);
                 break;
+            case "get": 
+                get(this.argumentToSend);
+                break;
             default:
                 System.out.println("Wrong argument");
                 break;
@@ -188,4 +191,25 @@ public class Client {
             System.out.println("Local RMI: Erreur: " + e.getMessage());
         }
     }
+
+    private void get(String fileToGet) {
+        try {
+            // calculate md5 of the file
+            MessageDigest md  = MessageDigest.getInstance("MD5");
+            String checksum   = md.digest(fileToGet.getBytes()).toString();
+
+            // call method to get a file
+            String newFile = localServerStub.execute("get", fileToGet, checksum);
+
+            // if the file has changed add it to the local directory
+            if (!newFile.isEmpty()){
+                System.out.println("new file: ");
+                System.out.println(newFile); 
+            }
+
+        } catch (Exception e){
+            System.out.println("Local RMI: Erreur: " + e.getMessage());
+        }
+    }
+
 }

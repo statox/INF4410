@@ -8,5 +8,6 @@ public interface ServerInterface extends Remote {
 	//void execute(byte[] arg) throws RemoteException;
 	String execute(String methodToCall) throws RemoteException;
 	Boolean execute(String methodToCall, String argumentToUse) throws RemoteException;
+	String execute(String methodToCall, String argument1, String argument2) throws RemoteException;
 	String execute(String methodToCall, String argument1, String argument2, String argument3) throws RemoteException;
 }

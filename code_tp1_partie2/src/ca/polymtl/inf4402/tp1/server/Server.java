@@ -92,6 +92,24 @@ public class Server implements ServerInterface {
 	 * Méthode accessible par RMI.
 	 */
 	@Override
+	public String execute(String methodToCall, String argument1, String argument2) throws RemoteException {
+        String result = "";
+        switch (methodToCall){
+            case "get": 
+                System.out.println("call get");
+                result = get(argument1, argument2);
+                break;
+            default:
+                System.out.println("No method found");
+                break;
+        }
+        return result;
+    }
+
+	/*
+	 * Méthode accessible par RMI.
+	 */
+	@Override
 	public String execute(String methodToCall, String argument1, String argument2, String argument3) throws RemoteException {
         String result = "";
         switch (methodToCall){
@@ -154,18 +172,6 @@ public class Server implements ServerInterface {
 
         return res;
     }
-    /*
-     * Get the content of a file if the local version is different
-     * of the one on the server
-     * return:
-     *      - a string containing the new version of the file if the
-     *      version are different
-     *      - an empty string if the files are the same
-     */
-	public String get(String nom, String checksum) throws RemoteException {
-        //String file = 
-        return "";
-    }
 
     /*
      * Lock a file so that only one user can modify it
@@ -206,37 +212,68 @@ public class Server implements ServerInterface {
         return "";
     }
 
+    /*
+     * Push file to client
+     *
+     */
     public String push(String nom, String contenu, String clientID) throws RemoteException {
+        String file = this.Files.get(nom).toString();
+
+        // If file is not in the file system end the method
+        if ( file == null ) {
+            System.out.println("Error file doesnt exists");
+            return "";
+        }
+
+        // If file is not already lock end the method
+        if ( !LockedFiles.containsKey(nom)) {
+            System.out.println("Error file not locked");
+            return "";
+        }
+
+        // If file is locked by another client end the operation
+        if ( !LockedFiles.get(nom).equals(clientID)) {
+            System.out.println("Error file locked by another user");
+            return "";
+        }else { // unlock the file
+            LockedFiles.remove(nom);
+        }
+
+        // update the content of the file
+        Files.put(nom, contenu);
+
+        this.getState();
+        return "";
+    }
+
+    /*
+     * Get the content of a file if the local version is different
+     * of the one on the server
+     * return:
+     *      - a string containing the new version of the file if the
+     *      version are different
+     *      - an empty string if the files are the same
+     */
+    private String get(String nom, String checksumClient) throws RemoteException {
+        try{
             String file = this.Files.get(nom).toString();
 
-            // If file is not in the file system end the method
-            if ( file == null ) {
-                System.out.println("Error file doesnt exists");
-                return "";
+            // calculate md5 of the file
+            MessageDigest md  = MessageDigest.getInstance("MD5");
+            String checksum   = md.digest(file.getBytes()).toString();
+
+            // If the client has a different version of the file send it
+            if ( checksum != checksumClient ) {
+                return file;
             }
 
-            // If file is not already lock end the method
-            if ( !LockedFiles.containsKey(nom)) {
-                System.out.println("Error file not locked");
-                return "";
-            }
+        } catch (Exception e){
+            System.out.println("MD5 exception" + e.getMessage());
+        }
 
-            // If file is locked by another client end the operation
-            if ( !LockedFiles.get(nom).equals(clientID)) {
-                System.out.println("serveur: " + LockedFiles.get(nom)); 
-                System.out.println("client:  " + clientID); 
-                System.out.println("Error file locked by another user");
-                return "";
-            }else { // unlock the file
-                LockedFiles.remove(nom);
-            }
-
-            // update the content of the file
-            Files.put(nom, contenu);
-
-            this.getState();
-            return "";
+        return "";
     }
+
 
 	public String getState() throws RemoteException {
         String res = "";
