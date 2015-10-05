@@ -9,12 +9,14 @@ import java.rmi.server.UnicastRemoteObject;
 import ca.polymtl.inf4402.tp1.shared.ServerInterface;
 
 import java.util.UUID;
+import java.util.Map;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class Server implements ServerInterface {
     // hashmap representing the file system
-    private Map LockedFiles;
-    private Map UnlockedFiles;
+    private HashMap LockedFiles;
+    private HashMap UnlockedFiles;
 
 	public static void main(String[] args) {
 		Server server = new Server();
@@ -23,8 +25,8 @@ public class Server implements ServerInterface {
 
 	public Server() {
 		super();
-        LockedFiles   = New HashMap<string, string>();
-        UnlockedFiles = New HashMap<string, string>();
+        LockedFiles   = new HashMap<String, String>();
+        UnlockedFiles = new HashMap<String, String>();
     }
 
 	private void run() {
@@ -49,13 +51,47 @@ public class Server implements ServerInterface {
 		}
 	}
 
+	/*
+	 * Méthode accessible par RMI.
+	 */
+	@Override
+	public String execute(String methodToCall) throws RemoteException {
+        String result = "";
+        switch (methodToCall){
+            case "list": 
+                System.out.println("Call list");
+                result = list();   
+                break;
+            default:
+                System.out.println("No method found");
+                break;
+        }
+        return result;
+    }
+
+	/*
+	 * Méthode accessible par RMI.
+	 */
+	@Override
+	public Boolean execute(String methodToCall, String argumentToUse) throws RemoteException {
+        Boolean result = false;
+        switch (methodToCall){
+            case "create": 
+                System.out.println("call create");
+                result = create(argumentToUse);
+                break;
+            default:
+                System.out.println("No method found");
+                break;
+        }
+        return result;
+    }
 
 	/*
 	 * generate a unique id for the client to save in a local file
 	 */
-	@Override
-	public UUID generateClientId() throws RemoteException {
-		return java.util.UUID.randomUUID();
+	public String generateClientId() throws RemoteException {
+		return java.util.UUID.randomUUID().toString();
 	}
 
     /*
@@ -64,13 +100,12 @@ public class Server implements ServerInterface {
      *      True  if the file was created
      *      False if the creation failed
      */
-	@Override
-	public Boolean create(string name) throws RemoteException {
-		if ( LockedFiles.get(name) == null && UnlockedFiles.get(name) == null ) {
-            UnlockedFiles.add(name, "");
-            return True;
+	public Boolean create(String name) throws RemoteException {
+		if ( this.LockedFiles.get(name) == null && this.UnlockedFiles.get(name) == null ) {
+            this.UnlockedFiles.put(name, "");
+            return true;
         }
-        return False;
+        return false;
 	}
 
     /*
@@ -78,9 +113,8 @@ public class Server implements ServerInterface {
      * return:
      *      a string representing the file system
      */
-	@Override
 	public String list() throws RemoteException {
-        String res = ""
+        String res = "";
 
         Iterator it = UnlockedFiles.entrySet().iterator();
         while (it.hasNext()) {
@@ -103,9 +137,9 @@ public class Server implements ServerInterface {
      *      version are different
      *      - an empty string if the files are the same
      */
-	@Override
 	public String get(String nom, String checksum) throws RemoteException {
         //String file = 
+        return "";
     }
 }
 

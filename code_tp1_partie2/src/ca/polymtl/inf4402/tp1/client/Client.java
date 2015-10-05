@@ -7,26 +7,36 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.lang.Math.*;
 
+import java.util.UUID;
+import java.util.Scanner;
 import ca.polymtl.inf4402.tp1.shared.ServerInterface;
+import java.io.*;
 
 public class Client {
 	public static void main(String[] args) {
 
-		if (args.length > 0) {
-            Client client = new Client(arg[0]);
+		if (args.length == 1) {
+            Client client = new Client(args[0]);
             client.run();
+            return;
 		}
-		if (args.length > 1) {
-            Client client = new Client(arg[0], arg[1]);
+        else if (args.length == 2) {
+            Client client = new Client(args[0], args[1]);
             client.run();
+            return;
 		}
+        else {
+            System.out.println("Invalid number of arguments");
+            return;
+        }
 
 	}
 
-	private ServerInterface localServerStub = null;
-	private String commandToCall   = null;
-    private String argumentToSend  = null;
-    private String pathToIDFile    = null;
+	private ServerInterface localServerStub  = null;
+	private String commandToCall             = null;
+    private String argumentToSend            = null;
+    private String pathToIDFile              = null;
+    private String UUID                      = null;
 
 	public Client(String command, String argument) {
 		super();
@@ -35,6 +45,7 @@ public class Client {
         this.commandToCall   = command;
         this.argumentToSend  = argument;
         this.pathToIDFile    = "./ID.file";
+        this.UUID            = "";
 
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
@@ -44,27 +55,22 @@ public class Client {
 		localServerStub = loadServerStub("127.0.0.1");
 	}
 
+	public Client(String command) {
+        this(command, "");
+    }
+
 	private void run() {
+        generateClientID();
+
         switch (this.commandToCall){
             case "create": 
-                
+                create(this.argumentToSend);
                 break;
             case "list": 
-                
-                break;
-            case "syncLocalDir": 
-                
-                break;
-            case "get": 
-                
-                break;
-            case "lock": 
-                
-                break;
-            case "push": 
-                
+                list(); 
                 break;
             default:
+                System.out.println("Wrong argument");
                 break;
         }
 	}
@@ -87,17 +93,59 @@ public class Client {
 		return stub;
 	}
 
-    private generateClientID(){
-
-    }
-
-    private void list() {
+    private void generateClientID(){
         try {
-            // call method several times to get a mean result
-            localServerStub.execute(argument);
+
+            File file = new File(this.pathToIDFile); 
+
+            // if the client doesnt have a UID already existing
+            if (!file.exists()){
+                // call method to get UUID from server
+                String uid = localServerStub.execute("create");
+                System.out.println("uid recupere: " + uid.toString());
+
+                // write uid to new file
+                Boolean fileCreated = file.createNewFile();
+                PrintWriter out = new PrintWriter(this.pathToIDFile);
+                out.println(uid);
+                out.close();
+
+                // keep uid in memory
+                this.UUID = uid;
+
+            }else { // if the client already has a uid in a file
+                this.UUID = new Scanner(file).next();
+                System.out.println("UID lu: " + this.UUID);
+            }
+
         } catch (RemoteException e) {
             System.out.println("Erreur: " + e.getMessage());
         } catch (Exception e){
             System.out.println("Local RMI: Erreur: " + e.getMessage());
         }
     }
+
+    private void list() {
+        try {
+            // call method to get file list
+            String list = localServerStub.execute("list");
+            System.out.println("Liste renvoyee par le seveur: " + list);
+        } catch (RemoteException e) {
+            System.out.println("Erreur: " + e.getMessage());
+        } catch (Exception e){
+            System.out.println("Local RMI: Erreur: " + e.getMessage());
+        }
+    }
+
+    private void create(String fileToCreate) {
+        try {
+            // call method to create a file
+            localServerStub.execute("create", fileToCreate);
+        } catch (RemoteException e) {
+            System.out.println("Erreur: " + e.getMessage());
+        } catch (Exception e){
+            System.out.println("Local RMI: Erreur: " + e.getMessage());
+        }
+        
+    }
+}

@@ -4,6 +4,8 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface ServerInterface extends Remote {
-	int execute(int a, int b) throws RemoteException;
-	void execute(byte[] arg) throws RemoteException;
+	//int execute(int a, int b) throws RemoteException;
+	//void execute(byte[] arg) throws RemoteException;
+	String execute(String methodToCall) throws RemoteException;
+	Boolean execute(String methodToCall, String argumentToUse) throws RemoteException;
 }
