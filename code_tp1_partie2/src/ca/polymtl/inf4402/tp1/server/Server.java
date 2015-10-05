@@ -12,11 +12,12 @@ import java.util.UUID;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.security.*;
 
 public class Server implements ServerInterface {
     // hashmap representing the file system
     private HashMap LockedFiles;
-    private HashMap UnlockedFiles;
+    private HashMap Files;
 
 	public static void main(String[] args) {
 		Server server = new Server();
@@ -26,7 +27,7 @@ public class Server implements ServerInterface {
 	public Server() {
 		super();
         LockedFiles   = new HashMap<String, String>();
-        UnlockedFiles = new HashMap<String, String>();
+        Files = new HashMap<String, String>();
     }
 
 	private void run() {
@@ -88,6 +89,28 @@ public class Server implements ServerInterface {
     }
 
 	/*
+	 * Méthode accessible par RMI.
+	 */
+	@Override
+	public String execute(String methodToCall, String argument1, String argument2, String argument3) throws RemoteException {
+        String result = "";
+        switch (methodToCall){
+            case "lock": 
+                System.out.println("call lock");
+                result = lock(argument1, argument2, argument3);
+                break;
+            case "push": 
+                System.out.println("call push");
+                result = push(argument1, argument2, argument3);
+                break;
+            default:
+                System.out.println("No method found");
+                break;
+        }
+        return result;
+    }
+
+	/*
 	 * generate a unique id for the client to save in a local file
 	 */
 	public String generateClientId() throws RemoteException {
@@ -101,8 +124,8 @@ public class Server implements ServerInterface {
      *      False if the creation failed
      */
 	public Boolean create(String name) throws RemoteException {
-		if ( this.LockedFiles.get(name) == null && this.UnlockedFiles.get(name) == null ) {
-            this.UnlockedFiles.put(name, "");
+		if ( this.Files.get(name) == null ) {
+            this.Files.put(name, "");
             return true;
         }
         return false;
@@ -116,15 +139,17 @@ public class Server implements ServerInterface {
 	public String list() throws RemoteException {
         String res = "";
 
-        Iterator it = UnlockedFiles.entrySet().iterator();
+        Iterator it = Files.entrySet().iterator();
         while (it.hasNext()) {
             Map.Entry pair = (Map.Entry)it.next();
-            res += pair.getKey() + "\t non verrouille \n";
-        }
-        it = LockedFiles.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-            res += pair.getKey() + "\t verrouille \n";
+    
+            // check if the file is locked
+            String lockString =  "\t non verrouille \n";
+            if ( LockedFiles.containsKey(pair.getKey())) {
+                lockString =   "\t verrouille \n";
+            }
+
+            res += pair.getKey() + lockString;
         }
 
         return res;
@@ -140,6 +165,100 @@ public class Server implements ServerInterface {
 	public String get(String nom, String checksum) throws RemoteException {
         //String file = 
         return "";
+    }
+
+    /*
+     * Lock a file so that only one user can modify it
+     *
+     *
+     *
+     */
+    public String lock(String nom, String clientID, String checksumClient) throws RemoteException {
+        try {
+            String file = this.Files.get(nom).toString();
+
+            // If file is not in the file system end the method
+            if ( file == null ) {
+                return "";
+            }
+
+            // If file is already lock end the method
+            if ( LockedFiles.containsKey(nom)) {
+                return "";
+            }
+
+            // calculate md5 of the file
+            MessageDigest md  = MessageDigest.getInstance("MD5");
+            String checksum   = md.digest(file.getBytes()).toString();
+
+            // Lock the file
+            this.LockedFiles.put(nom, clientID);
+
+            this.getState();
+            // if checksums are different return the file
+            if (checksum != checksumClient) {
+                return file;
+            } 
+
+        } catch (Exception e){
+            System.out.println("MD5 exception" + e.getMessage());
+        }
+        return "";
+    }
+
+    public String push(String nom, String contenu, String clientID) throws RemoteException {
+            String file = this.Files.get(nom).toString();
+
+            // If file is not in the file system end the method
+            if ( file == null ) {
+                System.out.println("Error file doesnt exists");
+                return "";
+            }
+
+            // If file is not already lock end the method
+            if ( !LockedFiles.containsKey(nom)) {
+                System.out.println("Error file not locked");
+                return "";
+            }
+
+            // If file is locked by another client end the operation
+            if ( !LockedFiles.get(nom).equals(clientID)) {
+                System.out.println("serveur: " + LockedFiles.get(nom)); 
+                System.out.println("client:  " + clientID); 
+                System.out.println("Error file locked by another user");
+                return "";
+            }else { // unlock the file
+                LockedFiles.remove(nom);
+            }
+
+            // update the content of the file
+            Files.put(nom, contenu);
+
+            this.getState();
+            return "";
+    }
+
+	public String getState() throws RemoteException {
+        String res = "";
+
+        Iterator it = Files.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+    
+            // check if the file is locked
+            String lockString =  "\t non verrouille \n";
+            if ( LockedFiles.containsKey(pair.getKey())) {
+                lockString =   "\t verrouille par " + this.LockedFiles.get(pair.getKey()) + " \n";
+            }
+
+            res += pair.getKey() + lockString;
+            res += "contenu: " + pair.getValue();
+        }
+
+        System.out.println("contenu du serveur");
+        System.out.println(res); 
+
+        return res;
     }
 }
 

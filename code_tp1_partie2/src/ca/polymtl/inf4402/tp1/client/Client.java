@@ -11,6 +11,7 @@ import java.util.UUID;
 import java.util.Scanner;
 import ca.polymtl.inf4402.tp1.shared.ServerInterface;
 import java.io.*;
+import java.security.*;
 
 public class Client {
 	public static void main(String[] args) {
@@ -25,6 +26,11 @@ public class Client {
             client.run();
             return;
 		}
+        else if (args.length == 3) {
+            Client client = new Client(args[0], args[1], args[2]);
+            client.run();
+            return;
+		}
         else {
             System.out.println("Invalid number of arguments");
             return;
@@ -35,15 +41,17 @@ public class Client {
 	private ServerInterface localServerStub  = null;
 	private String commandToCall             = null;
     private String argumentToSend            = null;
+    private String contentToSend             = null;
     private String pathToIDFile              = null;
     private String UUID                      = null;
 
-	public Client(String command, String argument) {
+	public Client(String command, String argument, String content) {
 		super();
 
         // Initialize members
         this.commandToCall   = command;
         this.argumentToSend  = argument;
+        this.contentToSend   = content;
         this.pathToIDFile    = "./ID.file";
         this.UUID            = "";
 
@@ -55,8 +63,11 @@ public class Client {
 		localServerStub = loadServerStub("127.0.0.1");
 	}
 
+	public Client(String command, String argument) {
+        this(command, argument, "");
+    }
 	public Client(String command) {
-        this(command, "");
+        this(command, "", "");
     }
 
 	private void run() {
@@ -68,6 +79,12 @@ public class Client {
                 break;
             case "list": 
                 list(); 
+                break;
+            case "lock": 
+                lock(this.argumentToSend);
+                break;
+            case "push": 
+                push(this.argumentToSend);
                 break;
             default:
                 System.out.println("Wrong argument");
@@ -129,7 +146,7 @@ public class Client {
         try {
             // call method to get file list
             String list = localServerStub.execute("list");
-            System.out.println("Liste renvoyee par le seveur: " + list);
+            System.out.println("Liste renvoyee par le seveur:\n" + list);
         } catch (RemoteException e) {
             System.out.println("Erreur: " + e.getMessage());
         } catch (Exception e){
@@ -146,6 +163,29 @@ public class Client {
         } catch (Exception e){
             System.out.println("Local RMI: Erreur: " + e.getMessage());
         }
-        
+    }
+
+    private void lock(String fileToLock) {
+        try {
+            // calculate md5 of the file
+            MessageDigest md  = MessageDigest.getInstance("MD5");
+            String checksum   = md.digest(fileToLock.getBytes()).toString();
+
+            // call method to lock a file
+            localServerStub.execute("lock", fileToLock, this.UUID, checksum);
+        //} catch (RemoteException e) {
+            //System.out.println("Erreur: " + e.getMessage());
+        } catch (Exception e){
+            System.out.println("Local RMI: Erreur: " + e.getMessage());
+        }
+    }
+
+    private void push(String fileToLock) {
+        try {
+            // call method to push a file
+            localServerStub.execute("push", fileToLock, this.contentToSend, this.UUID);
+        } catch (Exception e){
+            System.out.println("Local RMI: Erreur: " + e.getMessage());
+        }
     }
 }
