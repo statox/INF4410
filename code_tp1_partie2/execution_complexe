@@ -1,0 +1,35 @@
+#!/bin/bash
+
+mkdir dirClient1
+mkdir dirClient2
+
+cd dirClient1
+echo "client1: create monFichier"
+../client create monFichier
+
+echo "client1: lock monFichier"
+../client lock monFichier
+
+echo "client1: modifie monFichier"
+echo "coucou" >> ./monFichier
+
+cd ../dirClient2
+echo "client2: create monFichier"
+../client create monFichier
+
+echo "client2: lock monFichier"
+../client lock monFichier
+
+cd ../dirClient1
+echo "client1: push monfichier"
+../client push monFichier
+
+cd ../dirClient2
+echo "client2: lock monFichier"
+../client lock monFichier
+
+echo "client2: modifie monFichier"
+echo "uocuoc" >> ./monFichier
+
+echo "client2: push monfichier"
+../client push monFichier

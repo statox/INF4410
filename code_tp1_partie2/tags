@@ -1,0 +1,55 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+Client	src/ca/polymtl/inf4402/tp1/client/Client.java	/^	public Client(String command) {$/;"	m	class:Client
+Client	src/ca/polymtl/inf4402/tp1/client/Client.java	/^	public Client(String command, String argument) {$/;"	m	class:Client
+Client	src/ca/polymtl/inf4402/tp1/client/Client.java	/^	public Client(String command, String argument, String content) {$/;"	m	class:Client
+Client	src/ca/polymtl/inf4402/tp1/client/Client.java	/^public class Client {$/;"	c
+FakeServer	src/ca/polymtl/inf4402/tp1/client/FakeServer.java	/^public class FakeServer {$/;"	c
+Files	src/ca/polymtl/inf4402/tp1/server/Server.java	/^    private HashMap Files;$/;"	f	class:Server	file:
+LockedFiles	src/ca/polymtl/inf4402/tp1/server/Server.java	/^    private HashMap LockedFiles;$/;"	f	class:Server	file:
+Server	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public Server() {$/;"	m	class:Server
+Server	src/ca/polymtl/inf4402/tp1/server/Server.java	/^public class Server implements ServerInterface {$/;"	c
+ServerInterface	src/ca/polymtl/inf4402/tp1/shared/ServerInterface.java	/^public interface ServerInterface extends Remote {$/;"	i
+UUID	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private String UUID                      = null;$/;"	f	class:Client	file:
+argumentToSend	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private String argumentToSend            = null;$/;"	f	class:Client	file:
+ca.polymtl.inf4402.tp1.client	src/ca/polymtl/inf4402/tp1/client/Client.java	/^package ca.polymtl.inf4402.tp1.client;$/;"	p
+ca.polymtl.inf4402.tp1.client	src/ca/polymtl/inf4402/tp1/client/FakeServer.java	/^package ca.polymtl.inf4402.tp1.client;$/;"	p
+ca.polymtl.inf4402.tp1.server	src/ca/polymtl/inf4402/tp1/server/Server.java	/^package ca.polymtl.inf4402.tp1.server;$/;"	p
+ca.polymtl.inf4402.tp1.shared	src/ca/polymtl/inf4402/tp1/shared/ServerInterface.java	/^package ca.polymtl.inf4402.tp1.shared;$/;"	p
+commandToCall	src/ca/polymtl/inf4402/tp1/client/Client.java	/^	private String commandToCall             = null;$/;"	f	class:Client	file:
+create	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private void create(String fileToCreate) {$/;"	m	class:Client	file:
+create	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public Boolean create(String name) throws RemoteException {$/;"	m	class:Server
+execute	src/ca/polymtl/inf4402/tp1/client/FakeServer.java	/^	int execute(int a, int b) {$/;"	m	class:FakeServer
+execute	src/ca/polymtl/inf4402/tp1/client/FakeServer.java	/^	void execute(byte[] arg) {$/;"	m	class:FakeServer
+execute	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public Boolean execute(String methodToCall, String argumentToUse) throws RemoteException {$/;"	m	class:Server
+execute	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public String execute(String methodToCall) throws RemoteException {$/;"	m	class:Server
+execute	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public String execute(String methodToCall, String argument1, String argument2) throws RemoteException {$/;"	m	class:Server
+execute	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public String execute(String methodToCall, String argument1, String argument2, String argument3) throws RemoteException {$/;"	m	class:Server
+execute	src/ca/polymtl/inf4402/tp1/shared/ServerInterface.java	/^	Boolean execute(String methodToCall, String argumentToUse) throws RemoteException;$/;"	m	interface:ServerInterface
+execute	src/ca/polymtl/inf4402/tp1/shared/ServerInterface.java	/^	String execute(String methodToCall) throws RemoteException;$/;"	m	interface:ServerInterface
+execute	src/ca/polymtl/inf4402/tp1/shared/ServerInterface.java	/^	String execute(String methodToCall, String argument1, String argument2) throws RemoteException;$/;"	m	interface:ServerInterface
+execute	src/ca/polymtl/inf4402/tp1/shared/ServerInterface.java	/^	String execute(String methodToCall, String argument1, String argument2, String argument3) throws RemoteException;$/;"	m	interface:ServerInterface
+generateClientID	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private void generateClientID(){$/;"	m	class:Client	file:
+generateClientId	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public String generateClientId() throws RemoteException {$/;"	m	class:Server
+get	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private void get(String fileToGet) {$/;"	m	class:Client	file:
+get	src/ca/polymtl/inf4402/tp1/server/Server.java	/^    private String get(String nom, String checksumClient) throws RemoteException {$/;"	m	class:Server	file:
+getState	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public String getState() throws RemoteException {$/;"	m	class:Server
+list	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private void list() {$/;"	m	class:Client	file:
+list	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public String list() throws RemoteException {$/;"	m	class:Server
+loadServerStub	src/ca/polymtl/inf4402/tp1/client/Client.java	/^	private ServerInterface loadServerStub(String hostname) {$/;"	m	class:Client	file:
+localServerStub	src/ca/polymtl/inf4402/tp1/client/Client.java	/^	private ServerInterface localServerStub  = null;$/;"	f	class:Client	file:
+lock	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private void lock(String fileToLock) {$/;"	m	class:Client	file:
+lock	src/ca/polymtl/inf4402/tp1/server/Server.java	/^    public String lock(String nom, String clientID, String checksumClient) throws RemoteException {$/;"	m	class:Server
+main	src/ca/polymtl/inf4402/tp1/client/Client.java	/^	public static void main(String[] args) {$/;"	m	class:Client
+main	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public static void main(String[] args) {$/;"	m	class:Server
+pathToIDFile	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private String pathToIDFile              = null;$/;"	f	class:Client	file:
+push	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private void push(String fileToPush) {$/;"	m	class:Client	file:
+push	src/ca/polymtl/inf4402/tp1/server/Server.java	/^    public String push(String nom, String contenu, String clientID) throws RemoteException {$/;"	m	class:Server
+run	src/ca/polymtl/inf4402/tp1/client/Client.java	/^	private void run() {$/;"	m	class:Client	file:
+run	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	private void run() {$/;"	m	class:Server	file:
+syncLocalDir	src/ca/polymtl/inf4402/tp1/client/Client.java	/^    private void syncLocalDir() {$/;"	m	class:Client	file:
+syncLocalDir	src/ca/polymtl/inf4402/tp1/server/Server.java	/^	public String syncLocalDir() throws RemoteException {$/;"	m	class:Server

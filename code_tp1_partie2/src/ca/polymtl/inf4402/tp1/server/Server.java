@@ -59,9 +59,18 @@ public class Server implements ServerInterface {
 	public String execute(String methodToCall) throws RemoteException {
         String result = "";
         switch (methodToCall){
+            case "generateClientId": 
+                System.out.println("Generate client ID");
+                result = generateClientId();   
+                System.out.println(result); 
+                break;
             case "list": 
                 System.out.println("Call list");
                 result = list();   
+                break;
+            case "syncLocalDir": 
+                System.out.println("Call syncLocalDir");
+                result = syncLocalDir();   
                 break;
             default:
                 System.out.println("No method found");
@@ -157,19 +166,23 @@ public class Server implements ServerInterface {
 	public String list() throws RemoteException {
         String res = "";
 
-        Iterator it = Files.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry pair = (Map.Entry)it.next();
-    
-            // check if the file is locked
-            String lockString =  "\t non verrouille \n";
-            if ( LockedFiles.containsKey(pair.getKey())) {
-                lockString =   "\t verrouille \n";
+        if (this.Files.isEmpty()){
+            res = "0 fichiers";
+        } else {
+            Iterator it = Files.entrySet().iterator();
+            while (it.hasNext()) {
+                Map.Entry pair = (Map.Entry)it.next();
+        
+                // check if the file is locked
+                String lockString =  "\t non verrouille \n";
+                if ( LockedFiles.containsKey(pair.getKey())) {
+                    String client = LockedFiles.get(pair.getKey()).toString();
+                    lockString =   "\t verrouille par " + client + "\n";
+                }
+
+                res += pair.getKey() + lockString;
             }
-
-            res += pair.getKey() + lockString;
         }
-
         return res;
     }
 
@@ -185,12 +198,12 @@ public class Server implements ServerInterface {
 
             // If file is not in the file system end the method
             if ( file == null ) {
-                return "";
+                return "1";
             }
 
             // If file is already lock end the method
             if ( LockedFiles.containsKey(nom)) {
-                return "";
+                return "2";
             }
 
             // calculate md5 of the file
@@ -209,7 +222,7 @@ public class Server implements ServerInterface {
         } catch (Exception e){
             System.out.println("MD5 exception" + e.getMessage());
         }
-        return "";
+        return "3";
     }
 
     /*
@@ -222,19 +235,19 @@ public class Server implements ServerInterface {
         // If file is not in the file system end the method
         if ( file == null ) {
             System.out.println("Error file doesnt exists");
-            return "";
+            return "Le fichier n existe pas";
         }
 
         // If file is not already lock end the method
         if ( !LockedFiles.containsKey(nom)) {
             System.out.println("Error file not locked");
-            return "";
+            return "Le fichier n est pas verrouille";
         }
 
         // If file is locked by another client end the operation
         if ( !LockedFiles.get(nom).equals(clientID)) {
             System.out.println("Error file locked by another user");
-            return "";
+            return "Le fichier est verrouille par un autre utilisateur";
         }else { // unlock the file
             LockedFiles.remove(nom);
         }
@@ -242,8 +255,8 @@ public class Server implements ServerInterface {
         // update the content of the file
         Files.put(nom, contenu);
 
-        this.getState();
-        return "";
+        //this.getState();
+        return nom + " a ete envoye au serveur";
     }
 
     /*
@@ -272,8 +285,26 @@ public class Server implements ServerInterface {
         }
 
         return "";
+        //return null;
     }
 
+    /*
+     * list all the files (to be used by syncLocalDir)
+     * return:
+     *      a string with all the file names separated by ','
+     */
+	public String syncLocalDir() throws RemoteException {
+        String res = "";
+
+        Iterator it = Files.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry pair = (Map.Entry)it.next();
+    
+            res += pair.getKey() + ",";
+        }
+
+        return res;
+    }
 
 	public String getState() throws RemoteException {
         String res = "";

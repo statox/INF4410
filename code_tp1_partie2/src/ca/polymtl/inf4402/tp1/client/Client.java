@@ -13,6 +13,10 @@ import ca.polymtl.inf4402.tp1.shared.ServerInterface;
 import java.io.*;
 import java.security.*;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Iterator;
+
 public class Client {
 	public static void main(String[] args) {
 
@@ -41,7 +45,6 @@ public class Client {
 	private ServerInterface localServerStub  = null;
 	private String commandToCall             = null;
     private String argumentToSend            = null;
-    private String contentToSend             = null;
     private String pathToIDFile              = null;
     private String UUID                      = null;
 
@@ -51,7 +54,6 @@ public class Client {
         // Initialize members
         this.commandToCall   = command;
         this.argumentToSend  = argument;
-        this.contentToSend   = content;
         this.pathToIDFile    = "./ID.file";
         this.UUID            = "";
 
@@ -89,6 +91,9 @@ public class Client {
             case "get": 
                 get(this.argumentToSend);
                 break;
+            case "syncLocalDir": 
+                syncLocalDir();
+                break;
             default:
                 System.out.println("Wrong argument");
                 break;
@@ -121,8 +126,8 @@ public class Client {
             // if the client doesnt have a UID already existing
             if (!file.exists()){
                 // call method to get UUID from server
-                String uid = localServerStub.execute("create");
-                System.out.println("uid recupere: " + uid.toString());
+                String uid = localServerStub.execute("generateClientId");
+                //System.out.println("uid recupere: " + uid.toString());
 
                 // write uid to new file
                 Boolean fileCreated = file.createNewFile();
@@ -135,7 +140,7 @@ public class Client {
 
             }else { // if the client already has a uid in a file
                 this.UUID = new Scanner(file).next();
-                System.out.println("UID lu: " + this.UUID);
+                //System.out.println("UID lu: " + this.UUID);
             }
 
         } catch (RemoteException e) {
@@ -149,7 +154,7 @@ public class Client {
         try {
             // call method to get file list
             String list = localServerStub.execute("list");
-            System.out.println("Liste renvoyee par le seveur:\n" + list);
+            System.out.println(list);
         } catch (RemoteException e) {
             System.out.println("Erreur: " + e.getMessage());
         } catch (Exception e){
@@ -160,7 +165,12 @@ public class Client {
     private void create(String fileToCreate) {
         try {
             // call method to create a file
-            localServerStub.execute("create", fileToCreate);
+            Boolean result = localServerStub.execute("create", fileToCreate);
+            if (result){
+                System.out.println(fileToCreate + " cree avec succes");
+            } else {
+                System.out.println("erreur a la creation de " + fileToCreate);
+            }
         } catch (RemoteException e) {
             System.out.println("Erreur: " + e.getMessage());
         } catch (Exception e){
@@ -175,18 +185,42 @@ public class Client {
             String checksum   = md.digest(fileToLock.getBytes()).toString();
 
             // call method to lock a file
-            localServerStub.execute("lock", fileToLock, this.UUID, checksum);
-        //} catch (RemoteException e) {
-            //System.out.println("Erreur: " + e.getMessage());
+            String result = localServerStub.execute("lock", fileToLock, this.UUID, checksum);
+            switch (result) {
+                case "1":
+                    System.out.println("Le fichier n existe pas");
+                    break;
+                case "2":
+                    System.out.println("Le fichier est verrouille par un autre utilisateur");
+                    break;
+                case "3":
+                    System.out.println("Le fichier n existe pas");
+                    break;
+                default:
+                    System.out.println(fileToLock + " verrouille");
+                    break;
+            }
         } catch (Exception e){
             System.out.println("Local RMI: Erreur: " + e.getMessage());
         }
     }
 
-    private void push(String fileToLock) {
+    private void push(String fileToPush) {
         try {
+            File file = new File("./" + fileToPush); 
+            String content = "";
+            // Read the local file
+            if (file.exists()){
+                Scanner scan = new Scanner(file);
+                while (scan.hasNextLine()){
+                    content += scan.nextLine() + "\n";
+                }
+                scan.close();
+            }
+
             // call method to push a file
-            localServerStub.execute("push", fileToLock, this.contentToSend, this.UUID);
+            String result = localServerStub.execute("push", fileToPush, content, this.UUID);
+            System.out.println(result);
         } catch (Exception e){
             System.out.println("Local RMI: Erreur: " + e.getMessage());
         }
@@ -194,17 +228,65 @@ public class Client {
 
     private void get(String fileToGet) {
         try {
-            // calculate md5 of the file
-            MessageDigest md  = MessageDigest.getInstance("MD5");
-            String checksum   = md.digest(fileToGet.getBytes()).toString();
+            File file = new File("./" + fileToGet); 
+            String content = "";
+            String checksum = "-1";
+
+            // create non existing file
+            if (!file.exists()){
+                // write uid to new file
+                Boolean fileCreated  = file.createNewFile();
+                PrintWriter out      = new PrintWriter("./" + fileToGet);
+                out.println("");
+                out.close();
+            }
+
+            // Read the local file
+            if (file.exists()){
+                Scanner scan = new Scanner(file);
+                while (scan.hasNextLine()){
+                    content += scan.nextLine() + "\n";
+                }
+                scan.close();
+
+                //System.out.println("Contenu du fichier"); 
+                //System.out.println(content); 
+
+                // calculate md5 of the file
+                MessageDigest md  = MessageDigest.getInstance("MD5");
+                checksum   = md.digest(content.getBytes()).toString();
+            }
+
+            //System.out.println("Checksum: " + checksum); 
 
             // call method to get a file
             String newFile = localServerStub.execute("get", fileToGet, checksum);
 
             // if the file has changed add it to the local directory
             if (!newFile.isEmpty()){
-                System.out.println("new file: ");
-                System.out.println(newFile); 
+                System.out.println(fileToGet + " synchronise");
+
+                // write updated content to file
+                PrintWriter out = new PrintWriter("./" + fileToGet);
+                out.println(newFile);
+                out.close();
+            }else{
+                System.out.println(fileToGet + " deja synchronise");
+            }
+
+        } catch (Exception e){
+            System.out.println("Local RMI: Erreur: " + e.getMessage());
+        }
+    }
+
+    private void syncLocalDir() {
+        try{
+            // Get the file names
+            String[] files = localServerStub.execute("syncLocalDir").split(",");
+
+            for (String file : files){
+                System.out.println("Get " + file);
+                this.get(file);
             }
 
         } catch (Exception e){

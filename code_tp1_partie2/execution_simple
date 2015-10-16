@@ -1,0 +1,43 @@
+#!/bin/bash
+
+mkdir dirClient1
+cd dirClient1
+
+echo "../client list"
+../client list
+
+echo "../client create fichier1"
+../client create fichier1
+
+echo "../client create fichier2"
+../client create fichier2
+
+echo "../client list"
+../client list
+
+echo "../client get fichier1"
+../client get fichier1
+
+echo "../client push fichier1"
+../client push fichier1
+
+echo "../client lock fichier1"
+../client lock fichier1
+
+echo "../client list"
+../client list
+
+echo "../client push fichier1"
+../client push fichier1
+
+echo "../client list"
+../client list
+
+echo "ls"
+ls
+
+echo "../client syncLocalDir"
+../client syncLocalDir
+
+echo "ls"
+ls
