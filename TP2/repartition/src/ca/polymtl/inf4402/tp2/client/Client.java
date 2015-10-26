@@ -86,7 +86,8 @@ public class Client {
             }
 
 
-            serversPool.get(0).execute(operations);
+            int res = serversPool.get(0).execute(operations);
+            System.out.println("Resultat : " + res);
 
         } catch (RemoteException e) {
             System.out.println("Erreur: " + e.getMessage());

@@ -15,12 +15,23 @@ import ca.polymtl.inf4402.tp2.shared.ServerInterface;
 public class Server implements ServerInterface {
 
 	public static void main(String[] args) {
-		Server server = new Server();
+		String acceptation = null;
+
+		if (args.length > 0) {
+			acceptation = args[0];
+		}
+
+		Server server = new Server(acceptation);
 		server.run();
 	}
 
-	public Server() {
+    private int acceptation;
+
+	public Server(String acceptation) {
 		super();
+
+        System.out.println("arg " + acceptation);
+        this.acceptation = Integer.parseInt(acceptation);
 	}
 
 	private void run() {
@@ -51,19 +62,38 @@ public class Server implements ServerInterface {
 	@Override
     public int execute(ArrayList<String> operations) throws RemoteException {
         int total = 0;
-        //Operations calculator = new Operations();
+    
+        this.canCalculate(operations.size());
 
         for (String s : operations){
             String op   = s.split(" ")[0];
             int number  = Integer.parseInt(s.split(" ")[1]);
 
             if (op.equals("fib")){
-                int toto = 0;
-                toto = Operations.fib(number);
-                System.out.println("Fibo " + toto);
+                total += Operations.fib(number) % 5000;
+                System.out.println("Fibo " + total);
+            } else if (op.equals("prime")){
+                total += Operations.prime(number) % 5000;
+                System.out.println("Prime " + total);
             }
         }
 
-        return 0;
+        return total;
+    }
+
+    /*
+     * Calculate if the server has enough resources to do 
+     * a serie of calculations
+     */
+    public Boolean canCalculate(int u){
+        double tauxAcceptation = (u - this.acceptation)/(9* this.acceptation);
+
+        System.out.println("Taux dacceptation: " + tauxAcceptation);
+
+        if (tauxAcceptation <= 0)
+            return true;
+
+
+        return false;
     }
 }
