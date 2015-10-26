@@ -1,4 +1,4 @@
-package ca.polymtl.inf4410.tp2.operations;
+package ca.polymtl.inf4402.tp2.operations;
 
 /**
  * Methodes utilitaires pour effectuer les operations du TP2.

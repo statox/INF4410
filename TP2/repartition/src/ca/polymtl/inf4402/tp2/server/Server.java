@@ -59,7 +59,6 @@ public class Server implements ServerInterface {
 
             if (op.equals("fib")){
                 int toto = 0;
-                //toto = calculator.fib(number);
                 toto = Operations.fib(number);
                 System.out.println("Fibo " + toto);
             }

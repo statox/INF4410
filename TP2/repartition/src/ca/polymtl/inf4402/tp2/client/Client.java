@@ -88,8 +88,8 @@ public class Client {
 
             serversPool.get(0).execute(operations);
 
-		//} catch (RemoteException e) {
-			//System.out.println("Erreur: " + e.getMessage());
+        } catch (RemoteException e) {
+            System.out.println("Erreur: " + e.getMessage());
 		} catch (Exception e){
             System.out.println("Distant RMI: Erreur: " + e.getMessage());
         }
