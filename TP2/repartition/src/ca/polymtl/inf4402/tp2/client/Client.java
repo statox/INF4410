@@ -27,8 +27,9 @@ public class Client {
 		client.run();
 	}
 
-	private List<ServerInterface> serversPool  = null;
-	private String pathToOperations            = null;
+	private List<ServerInterface> serversPool   = null;
+	private List<Integer> nbAcceptedOperations  = null;
+	private String pathToOperations             = null;
 
 	public Client(String pathToOperations) {
 		super();
@@ -42,7 +43,16 @@ public class Client {
 
         // Pool of servers to do the calculations
         this.serversPool = new ArrayList<ServerInterface>();
-		serversPool.add(loadServerStub("127.0.0.1"));
+        serversPool.add(loadServerStub("l4712-08.info.polymtl.ca"));
+		//serversPool.add(loadServerStub("l4712-09.info.polymtl.ca"));
+		//serversPool.add(loadServerStub("l4712-10.info.polymtl.ca"));
+
+        // Number of operations accepted by each servers (this list will
+        // be modified over the time)
+        this.nbAcceptedOperations = new ArrayList<Integer>();
+        this.nbAcceptedOperations.add(10);
+        //this.nbAcceptedOperations.add(10);
+        //this.nbAcceptedOperations.add(10);
 	}
 
 	private void run() {
@@ -70,8 +80,9 @@ public class Client {
 	private void RepartirCalculs() {
 		try {
             // Read the operations file and keep its content in memory
-            File file                = new File("./" + this.pathToOperations);
+            File file                     = new File("./" + this.pathToOperations);
             ArrayList<String> operations  = new ArrayList<String>();
+            ArrayList<String> repartition  = new ArrayList<String>();
 
             if (!file.exists()){
                 System.out.println("Le fichier nexiste pas");
@@ -85,9 +96,19 @@ public class Client {
                 scan.close();
             }
 
-
             int res = serversPool.get(0).execute(operations);
             System.out.println("Resultat : " + res);
+
+            //for (int i=0; i<operations.size() / 2; ++i)
+                //repartition.add(operations.get(i));
+            //int res = serversPool.get(0).execute(repartition);
+            //System.out.println("Resultat : " + res);
+
+            //repartition.clear();
+            //for (int i=operations.size() / 2; i<operations.size(); ++i)
+                //repartition.add(operations.get(i));
+            //res = serversPool.get(1).execute(repartition);
+            //System.out.println("Resultat : " + res);
 
         } catch (RemoteException e) {
             System.out.println("Erreur: " + e.getMessage());

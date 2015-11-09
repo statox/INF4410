@@ -8,9 +8,11 @@ import java.rmi.server.UnicastRemoteObject;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.lang.Math;
 
 import ca.polymtl.inf4402.tp2.operations.Operations;
 import ca.polymtl.inf4402.tp2.shared.ServerInterface;
+
 
 public class Server implements ServerInterface {
 
@@ -61,21 +63,24 @@ public class Server implements ServerInterface {
 	 */
 	@Override
     public int execute(ArrayList<String> operations) throws RemoteException {
-        int total = 0;
+        int total = -1;
     
-        this.canCalculate(operations.size());
+        // if we have enough resources we return the result
+        if (this.canCalculate(operations.size())){
+            for (String s : operations){
+                String op   = s.split(" ")[0];
+                int number  = Integer.parseInt(s.split(" ")[1]);
 
-        for (String s : operations){
-            String op   = s.split(" ")[0];
-            int number  = Integer.parseInt(s.split(" ")[1]);
-
-            if (op.equals("fib")){
-                total += Operations.fib(number) % 5000;
-                System.out.println("Fibo " + total);
-            } else if (op.equals("prime")){
-                total += Operations.prime(number) % 5000;
-                System.out.println("Prime " + total);
+                if (op.equals("fib")){
+                    total += Operations.fib(number) % 5000;
+                    System.out.println("Fibo " + total);
+                } else if (op.equals("prime")){
+                    total += Operations.prime(number) % 5000;
+                    System.out.println("Prime " + total);
+                }
             }
+        }else{ // if we dont have enough resources we return -1
+            total = -1;
         }
 
         return total;
@@ -86,13 +91,18 @@ public class Server implements ServerInterface {
      * a serie of calculations
      */
     public Boolean canCalculate(int u){
-        double tauxAcceptation = (u - this.acceptation)/(9* this.acceptation);
+        double tauxAcceptation = ((double)u - (double)this.acceptation)/(double)(9* this.acceptation);
 
         System.out.println("Taux dacceptation: " + tauxAcceptation);
 
-        if (tauxAcceptation <= 0)
+        if (tauxAcceptation <= 0){
             return true;
-
+        } else if (tauxAcceptation > 1){
+            return false;
+        } else {
+            if (Math.random() < tauxAcceptation)
+                return true;
+        }
 
         return false;
     }
