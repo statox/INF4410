@@ -7,12 +7,16 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.lang.Math.*;
 
+import java.util.*;
+import java.util.concurrent.*;
+import java.util.concurrent.Callable;
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
 import java.io.*;
 
 import ca.polymtl.inf4402.tp2.shared.ServerInterface;
+import ca.polymtl.inf4402.tp2.client.ClientThread;
 
 public class Client {
 	public static void main(String[] args) {
@@ -44,15 +48,15 @@ public class Client {
         // Pool of servers to do the calculations
         this.serversPool = new ArrayList<ServerInterface>();
         serversPool.add(loadServerStub("l4712-08.info.polymtl.ca"));
-		//serversPool.add(loadServerStub("l4712-09.info.polymtl.ca"));
-		//serversPool.add(loadServerStub("l4712-10.info.polymtl.ca"));
+        serversPool.add(loadServerStub("l4712-09.info.polymtl.ca"));
+        serversPool.add(loadServerStub("l4712-10.info.polymtl.ca"));
 
         // Number of operations accepted by each servers (this list will
         // be modified over the time)
         this.nbAcceptedOperations = new ArrayList<Integer>();
         this.nbAcceptedOperations.add(10);
-        //this.nbAcceptedOperations.add(10);
-        //this.nbAcceptedOperations.add(10);
+        this.nbAcceptedOperations.add(10);
+        this.nbAcceptedOperations.add(10);
 	}
 
 	private void run() {
@@ -79,7 +83,9 @@ public class Client {
 
 	private void RepartirCalculs() {
 		try {
-            // Read the operations file and keep its content in memory
+            /*
+             * Read the operations file and keep its content in memory
+             */
             File file                     = new File("./" + this.pathToOperations);
             ArrayList<String> operations  = new ArrayList<String>();
             ArrayList<String> repartition  = new ArrayList<String>();
@@ -96,24 +102,56 @@ public class Client {
                 scan.close();
             }
 
-            int res = serversPool.get(0).execute(operations);
-            System.out.println("Resultat : " + res);
+	
+            /*
+             * Creation of the thread for each server and call of their method
+             */
+            ExecutorService pool      = Executors.newFixedThreadPool(3);
+            Set<Future<Integer>> set  = new HashSet<Future<Integer>>();
 
-            //for (int i=0; i<operations.size() / 2; ++i)
-                //repartition.add(operations.get(i));
-            //int res = serversPool.get(0).execute(repartition);
-            //System.out.println("Resultat : " + res);
+            /*
+             *for (ServerInterface server : this.serversPool) {
+             *    System.out.println("Creation dun nouveau thread");
+             *    Callable<Integer> callable  = new ClientThread(server, operations);
+             *    Future<Integer> future      = pool.submit(callable);
+             *    set.add(future);
+             *}
+             */
+            int cpt = 0;
+            while (cpt != operations.size() - 1){
+                for (ServerInterface server : this.serversPool){
+                    // Create a sublist of operations to execute
+                    int borne = cpt + this.nbAcceptedOperations.get(this.serversPool.indexOf(server));
+                    if (borne >= operations.size())
+                        borne = operations.size()-1;
 
-            //repartition.clear();
-            //for (int i=operations.size() / 2; i<operations.size(); ++i)
-                //repartition.add(operations.get(i));
-            //res = serversPool.get(1).execute(repartition);
-            //System.out.println("Resultat : " + res);
+                    ArrayList<String> subOperations = new ArrayList<String>(operations.subList(cpt, borne));
+                    System.out.println("Server " + this.serversPool.indexOf(server) + " de " + cpt + " a " + borne);
+                    cpt = borne;
 
-        } catch (RemoteException e) {
-            System.out.println("Erreur: " + e.getMessage());
-		} catch (Exception e){
-            System.out.println("Distant RMI: Erreur: " + e.getMessage());
+                    // create a callable with the right server and the new sublist
+                    Callable<Integer> callable  = new ClientThread(server, subOperations);
+                    // get the return of the callable
+                    Future<Integer> future      = pool.submit(callable);
+                    set.add(future);
+                }
+            }
+
+            /*
+             * Get the result of each thread and sum it
+             */
+            int sum = 0;
+            System.out.println("Liste des resultats dans le client");
+            for (Future<Integer> future : set) {
+                System.out.println(future.get());
+                sum += future.get();
+            }
+            System.out.printf("somme des resultats dans le client: " + sum);
+
+            return;
+
+        } catch (Exception e){
+            System.out.println("Exception dans le client: " + e.getMessage());
         }
 	}
 }

@@ -73,14 +73,15 @@ public class Server implements ServerInterface {
 
                 if (op.equals("fib")){
                     total += Operations.fib(number) % 5000;
-                    System.out.println("Fibo " + total);
+                    System.out.println("Fibo(" + number + ")" + total);
                 } else if (op.equals("prime")){
                     total += Operations.prime(number) % 5000;
-                    System.out.println("Prime " + total);
+                    System.out.println("Prime(" + number + ")" + total);
                 }
             }
         }else{ // if we dont have enough resources we return -1
             total = -1;
+            System.out.println("REFUS");
         }
 
         return total;

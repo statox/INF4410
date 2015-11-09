@@ -1,0 +1,6 @@
+fib 0
+fib 1
+fib 2
+prime 3
+prime 3
+prime 3

@@ -18,6 +18,7 @@
 		<delete file="client.jar" />
 		<delete file="shared.jar" />
 		<delete file="operations.jar" />
+		<delete file="clientthread.jar" />
 	</target>
 	<target depends="init" name="build-class">
 		<javac debug="true" debuglevel="${debuglevel}" destdir="bin" includeantruntime="false">
@@ -30,5 +31,6 @@
 		<jar destfile="server.jar" basedir="bin" includes="ca/polymtl/inf4402/tp2/server/**" update="false" />
 		<jar destfile="client.jar" basedir="bin" includes="ca/polymtl/inf4402/tp2/client/**" update="false" />
 		<jar destfile="operations.jar" basedir="bin" includes="ca/polymtl/inf4402/tp2/operations/**" update="false" />
+		<jar destfile="clientthread.jar" basedir="bin" includes="ca/polymtl/inf4402/tp2/client/**" update="false" />
 	</target>
 </project>
