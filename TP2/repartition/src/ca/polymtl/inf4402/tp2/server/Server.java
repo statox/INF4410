@@ -77,6 +77,9 @@ public class Server implements ServerInterface {
                 } else if (op.equals("prime")){
                     total += Operations.prime(number) % 5000;
                     System.out.println("Prime(" + number + ")" + total);
+                } else if (op.equals("test")){
+                    total += number % 5000;
+                    System.out.println("Test(" + number + ")" + total);
                 }
             }
         }else{ // if we dont have enough resources we return -1

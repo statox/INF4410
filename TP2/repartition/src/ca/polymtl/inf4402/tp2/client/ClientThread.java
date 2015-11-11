@@ -19,23 +19,29 @@ public class ClientThread implements Callable {
 
     private ServerInterface server;
     private ArrayList<String> operations = null;
+    private int index;
 
-    public ClientThread (ServerInterface server, ArrayList<String> operations){
+    public ClientThread (ServerInterface server, ArrayList<String> operations, int index){
         this.server      = server;
         this.operations  = operations;
+        this.index       = index;
     }
 
-    public Integer call() {
+    public ArrayList<Integer> call() {
         try {
 
-            System.out.println("Hello from a thread!");
             int res = this.server.execute(this.operations);
-            System.out.println("Resultat dans le thread: " + res);
+            //System.out.println("Resultat dans le thread: " + res);
 
-            return res;
+            ArrayList<Integer> list = new ArrayList<Integer>();
+            list.add(res);
+            list.add(this.index);
+            list.add(this.operations.size());
+
+            return list;
         } catch (RemoteException e) {
             System.out.println("Remote exception dans le thread: " + e.getMessage());
         }
-        return -1;
+        return null;
     }
 }
