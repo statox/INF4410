@@ -20,11 +20,13 @@ public class ClientThread implements Callable {
     private ServerInterface server;
     private ArrayList<String> operations = null;
     private int index;
+    private int indexServer;
 
-    public ClientThread (ServerInterface server, ArrayList<String> operations, int index){
+    public ClientThread (ServerInterface server, ArrayList<String> operations, int index, int indexServer){
         this.server      = server;
         this.operations  = operations;
         this.index       = index;
+        this.indexServer = indexServer;
     }
 
     public ArrayList<Integer> call() {
@@ -37,6 +39,7 @@ public class ClientThread implements Callable {
             list.add(res);
             list.add(this.index);
             list.add(this.operations.size());
+            list.add(this.indexServer);
 
             return list;
         } catch (RemoteException e) {

@@ -63,7 +63,7 @@ public class Server implements ServerInterface {
 	 */
 	@Override
     public int execute(ArrayList<String> operations) throws RemoteException {
-        int total = -1;
+        int total = 0;
     
         // if we have enough resources we return the result
         if (this.canCalculate(operations.size())){
