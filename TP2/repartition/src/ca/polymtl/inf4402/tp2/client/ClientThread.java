@@ -29,16 +29,15 @@ public class ClientThread implements Callable {
         this.indexServer = indexServer;
     }
 
-    public ArrayList<Integer> call() {
+    public ArrayList<Object> call() {
         try {
 
             int res = this.server.execute(this.operations);
             //System.out.println("Resultat dans le thread: " + res);
 
-            ArrayList<Integer> list = new ArrayList<Integer>();
+            ArrayList<Object> list = new ArrayList<Object>();
             list.add(res);
-            list.add(this.index);
-            list.add(this.operations.size());
+            list.add(this.operations);
             list.add(this.indexServer);
 
             return list;

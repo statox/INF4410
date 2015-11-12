@@ -108,50 +108,65 @@ public class Client {
              */
             ArrayList<String> operationsAEnvoyer = new ArrayList<String>();
             operationsAEnvoyer.addAll(operations);
-            ArrayList<Future<List<Integer>>> futures  = new ArrayList<Future<List<Integer>>>();
+            ArrayList<Future<List<Object>>> futures  = new ArrayList<Future<List<Object>>>();
             int nbOperationsExecutees = 0;
             int sum = 0;
         
+            // Envoi une premiere fois de toutes les operations
+            futures = envoyerOperations(operationsAEnvoyer);
+
             // Tant que toutes les operations nont pas ete effectuees on les relance
             while(nbOperationsExecutees < operations.size()){
-                System.out.println("\n\nnouvelle iteration (operations executees: " 
-                        + nbOperationsExecutees + "/" + operations.size() +")");
-
-                //for (String s : operationsAEnvoyer)
-                    //System.out.println(s);
+                //System.out.println("\n\nnouvelle iteration (operations executees: " 
+                        //+ nbOperationsExecutees + "/" + operations.size() +")");
 
                 // envoi de toutes les operations qui nont pas encore reussi
-                futures = envoyerOperations(operationsAEnvoyer);
+                //futures = envoyerOperations(operationsAEnvoyer);
+
+                // contiendra les resultats des operations echouees ou non terminees pour la prochaine iteration
+                ArrayList<Future<List<Object>>> nextFutures  = new ArrayList<Future<List<Object>>>();
 
                 // contiendra toutes les operations qui nont pas ete executees
                 ArrayList<String> operationsEchouees = new ArrayList<String>();
 
-                for (Future<List<Integer>> future : futures) {
-                    int resultat      = future.get().get(0);
-                    int index         = future.get().get(1);
-                    int nbOperations  = future.get().get(2);
-                    int indexServer   = future.get().get(3);
+                //Thread.sleep(10000);
+                for (Future<List<Object>> future : futures) {
+                    if (future.isDone() ){ // lensemble doperation a renvoye un resultat
+                        int resultat             = (Integer) future.get().get(0);
+                        ArrayList<String> operationsExecutees  = (ArrayList<String>) future.get().get(1);
+                        int indexServer                = (Integer) future.get().get(2);
 
-                    //System.out.println("Operations " + index + " a " + ( index + nbOperations ) + " = " + resultat);
-                    if (resultat != -1){ // lensemble doperations a ete calcule avec succes
-                        sum = (sum + resultat) % 5000;
-                        nbOperationsExecutees += nbOperations;
-                        // On augmente le nombre doperations a envoyer au serveur la prochaine fois
-                        this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)+2);
-                        System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
-                    }else{ // lensemble doperation na pas pu etre calcule
-                        ArrayList<String> aAjouterDansLesEchecs = new ArrayList<String>();
-                        aAjouterDansLesEchecs = new ArrayList<String>(operationsAEnvoyer.subList(index, index + nbOperations));
-                        operationsEchouees.addAll(aAjouterDansLesEchecs);
-                        // On diminue le nombre doperations a envoyer au serveur la prochaine fois
-                        this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)-2);
-                        if (this.nbAcceptedOperations.get(indexServer) < 2) 
-                            this.nbAcceptedOperations.set(indexServer, 2);
-                        System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)");
+                        System.out.println("Operations " + operationsExecutees.size() + " = " + resultat);
+                        for(String s : operationsExecutees)
+                            System.out.println(s);
+
+                        if (resultat != -1){ // lensemble doperations a ete calcule avec succes
+                            sum = (sum + resultat) % 5000;
+                            nbOperationsExecutees += operationsExecutees.size();
+                            // On augmente le nombre doperations a envoyer au serveur la prochaine fois
+                            this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)+2);
+                            System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
+                        }else{ // lensemble doperation na pas pu etre calcule
+                            operationsEchouees.addAll(operationsExecutees);
+                            // On diminue le nombre doperations a envoyer au serveur la prochaine fois
+                            this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)-2);
+                            if (this.nbAcceptedOperations.get(indexServer) < 2) 
+                                this.nbAcceptedOperations.set(indexServer, 2);
+                            System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)");
+                        }
+                    } else { // lensemble doperation na pas encore renvoye de resultat
+                       nextFutures.add(future); 
                     }
                 }
                 operationsAEnvoyer.clear();
-                operationsAEnvoyer = operationsEchouees;
+                operationsAEnvoyer.addAll(operationsEchouees);
+
+                // purge des futures
+                futures.clear();
+                // envoi des operations echouees
+                futures = envoyerOperations(operationsEchouees);
+                // ajout des operations non terminees
+                futures.addAll(nextFutures);
             }
 
             System.out.printf("somme des resultats dans le client: " + sum);
@@ -159,6 +174,8 @@ public class Client {
 
         } catch (Exception e){
             System.out.println("Exception dans le client: " + e.getMessage());
+            System.out.println(e.getCause());
+            e.printStackTrace();
         }
 	}
 
@@ -171,51 +188,43 @@ public class Client {
      *              - lindice de la premiere operation
      *              - Le nombre doperations effectuees
      */
-    private ArrayList<Future<List<Integer>>> envoyerOperations(ArrayList<String> operations) {
-        ArrayList<Future<List<Integer>>> futures  = new ArrayList<Future<List<Integer>>>();
+    private ArrayList<Future<List<Object>>> envoyerOperations(ArrayList<String> operations) {
+        ArrayList<Future<List<Object>>> futures  = new ArrayList<Future<List<Object>>>();
         ExecutorService pool      = Executors.newFixedThreadPool(3);
 
-        //System.out.println("\nOperations a envoyer");
-        //for (String s : operations)
-            //System.out.println(s);
-        System.out.println("\n");
+        if (!operations.isEmpty()){
 
-        int index          = 0;
-        int indexServer    = -1;
-        boolean continuer  = true;
-        while(continuer){
-            indexServer               = (indexServer+1)%3;
-            ServerInterface server    = this.serversPool.get(indexServer);
-            int nbOperationsAEnvoyer  = this.nbAcceptedOperations.get(indexServer);
-            int indexFin              = index - 1 + nbOperationsAEnvoyer;
+            int index          = 0;
+            int indexServer    = -1;
+            boolean continuer  = true;
+            while(continuer){
+                indexServer               = (indexServer+1)%3;
+                ServerInterface server    = this.serversPool.get(indexServer);
+                int nbOperationsAEnvoyer  = this.nbAcceptedOperations.get(indexServer);
+                int indexFin              = index - 1 + nbOperationsAEnvoyer;
 
-            // Si literation precedente a lance le calcul de la derniere
-            // operation on sort de la boucle while
-            if (!continuer)
-                break;
+                // Si literation precedente a lance le calcul de la derniere
+                // operation on sort de la boucle while
+                if (!continuer)
+                    break;
 
-            // On limite lindex des operation a la derniere
-            if (indexFin >= operations.size() - 1){
-                indexFin = operations.size() - 1;
-                continuer = false;
+                // On limite lindex des operation a la derniere
+                if (indexFin >= operations.size() - 1){
+                    indexFin = operations.size() - 1;
+                    continuer = false;
+                }
+
+                // creation dune liste doperations a envoyer au serveur
+                ArrayList<String> subOperations = new ArrayList<String>(operations.subList(index, indexFin + 1));
+
+                // create a callable with the right server and the new sublist
+                Callable<List<Object>> callable  = new ClientThread(server, subOperations, index, indexServer);
+                // get the return of the callable
+                Future<List<Object>> future      = pool.submit(callable);
+                futures.add(future);
+
+                index = indexFin + 1;
             }
-
-            // creation dune liste doperations a envoyer au serveur
-            ArrayList<String> subOperations = new ArrayList<String>(operations.subList(index, indexFin + 1));
-
-            //System.out.println("Serveur " + indexServer + ": "
-                    //+ subOperations.get(0) + "(" + index + ") - "
-                    //+ subOperations.get(subOperations.size() - 1) + "(" + indexFin + ")");
-            System.out.println("Serveur " + indexServer + ": " + subOperations.size());
-
-
-            // create a callable with the right server and the new sublist
-            Callable<List<Integer>> callable  = new ClientThread(server, subOperations, index, indexServer);
-            // get the return of the callable
-            Future<List<Integer>> future      = pool.submit(callable);
-            futures.add(future);
-
-            index = indexFin + 1;
         }
         return futures;
     }
