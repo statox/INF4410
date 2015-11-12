@@ -20,13 +20,15 @@ import ca.polymtl.inf4402.tp2.client.ClientThread;
 
 public class Client {
 	public static void main(String[] args) {
-		String pathToOperations = null;
+		String pathToOperations  = null;
+        String secureMode        = null;
 
-		if (args.length > 0) {
-			pathToOperations = args[0];
+		if (args.length > 1) {
+            secureMode       = args[0];
+			pathToOperations = args[1];
 		}
 
-		Client client = new Client(pathToOperations);
+		Client client = new Client(pathToOperations, secureMode);
 
 		client.run();
 	}
@@ -34,13 +36,19 @@ public class Client {
 	private List<ServerInterface> serversPool   = null;
 	private List<Integer> nbAcceptedOperations  = null;
 	private String pathToOperations             = null;
+	private Boolean secureMode                  = null;
 
-	public Client(String pathToOperations) {
+	public Client(String pathToOperations, String secureMode) {
 		super();
 
 		if (System.getSecurityManager() == null) {
 			System.setSecurityManager(new SecurityManager());
 		}
+
+        this.secureMode = false;
+        if (secureMode.equals("s"))
+            this.secureMode = true;
+
 
         // File containing the operations to execute
         this.pathToOperations = pathToOperations;
@@ -60,7 +68,10 @@ public class Client {
 	}
 
 	private void run() {
-        RepartirCalculs();
+        if (this.secureMode)
+            RepartirCalculsSecurise();
+        else
+            RepartirCalculs();
 	}
 
 	private ServerInterface loadServerStub(String hostname) {
@@ -81,27 +92,41 @@ public class Client {
 		return stub;
 	}
 
+    /*
+     * Envoi des operations en mode non securise
+     */
+	private void RepartirCalculsSecurise() {
+		try {
+            ArrayList<String> operations  = this.LireOperationsDepuisFichier();
+
+            /*
+             * Get current time to calculate execution time
+             */
+            long startTime = System.currentTimeMillis();
+
+            while(){
+
+            }
+
+        } catch (Exception e){
+            System.out.println("Exception dans le client: " + e.getMessage());
+            System.out.println(e.getCause());
+            e.printStackTrace();
+        }
+    }
+
+    /*
+     * Envoi des operations en mode non securise
+     */
 	private void RepartirCalculs() {
 		try {
+
+            ArrayList<String> operations  = this.LireOperationsDepuisFichier();
+
             /*
-             * Read the operations file and keep its content in memory
+             * Get current time to calculate execution time
              */
-            File file                     = new File("./" + this.pathToOperations);
-            ArrayList<String> operations  = new ArrayList<String>();
-            ArrayList<String> repartition  = new ArrayList<String>();
-
-            if (!file.exists()){
-                System.out.println("Le fichier nexiste pas");
-            }
-
-            if (file.exists()){
-                Scanner scan = new Scanner(file);
-                while (scan.hasNextLine()){
-                    operations.add( scan.nextLine() );
-                }
-                scan.close();
-            }
-
+            long startTime = System.currentTimeMillis();
 	
             /*
              * Creation of the thread for each server and call of their method
@@ -117,11 +142,6 @@ public class Client {
 
             // Tant que toutes les operations nont pas ete effectuees on les relance
             while(nbOperationsExecutees < operations.size()){
-                //System.out.println("\n\nnouvelle iteration (operations executees: " 
-                        //+ nbOperationsExecutees + "/" + operations.size() +")");
-
-                // envoi de toutes les operations qui nont pas encore reussi
-                //futures = envoyerOperations(operationsAEnvoyer);
 
                 // contiendra les resultats des operations echouees ou non terminees pour la prochaine iteration
                 ArrayList<Future<List<Object>>> nextFutures  = new ArrayList<Future<List<Object>>>();
@@ -129,32 +149,41 @@ public class Client {
                 // contiendra toutes les operations qui nont pas ete executees
                 ArrayList<String> operationsEchouees = new ArrayList<String>();
 
-                //Thread.sleep(10000);
                 for (Future<List<Object>> future : futures) {
-                    if (future.isDone() ){ // lensemble doperation a renvoye un resultat
-                        int resultat             = (Integer) future.get().get(0);
+                    // lensemble doperation a renvoye un resultat
+                    if (future.isDone() ){ 
+                        int resultat                           = (Integer) future.get().get(0);
                         ArrayList<String> operationsExecutees  = (ArrayList<String>) future.get().get(1);
-                        int indexServer                = (Integer) future.get().get(2);
+                        int indexServer                        = (Integer) future.get().get(2);
 
                         System.out.println("Operations " + operationsExecutees.size() + " = " + resultat);
                         for(String s : operationsExecutees)
                             System.out.println(s);
 
-                        if (resultat != -1){ // lensemble doperations a ete calcule avec succes
+                        // lensemble doperations a ete calcule avec succes
+                        if (resultat != -1){ 
+                            // mise a jour de la somme et du nombre doperations executees
                             sum = (sum + resultat) % 5000;
                             nbOperationsExecutees += operationsExecutees.size();
+
                             // On augmente le nombre doperations a envoyer au serveur la prochaine fois
                             this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)+2);
                             System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
-                        }else{ // lensemble doperation na pas pu etre calcule
+
+                        // lensemble doperation na pas pu etre calcule
+                        }else{ 
+                            // recuperation des operations echouees
                             operationsEchouees.addAll(operationsExecutees);
+
                             // On diminue le nombre doperations a envoyer au serveur la prochaine fois
                             this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)-2);
                             if (this.nbAcceptedOperations.get(indexServer) < 2) 
                                 this.nbAcceptedOperations.set(indexServer, 2);
                             System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)");
                         }
-                    } else { // lensemble doperation na pas encore renvoye de resultat
+
+                    // lensemble doperation na pas encore renvoye de resultat
+                    } else { 
                        nextFutures.add(future); 
                     }
                 }
@@ -169,6 +198,13 @@ public class Client {
                 futures.addAll(nextFutures);
             }
 
+            /*
+             * Calculate execution time
+             */
+            long executionTime = System.currentTimeMillis() - startTime;
+            System.out.println("Execution time: " + (executionTime / 1000) + "s");
+
+
             System.out.printf("somme des resultats dans le client: " + sum);
             System.exit(0);
 
@@ -178,6 +214,36 @@ public class Client {
             e.printStackTrace();
         }
 	}
+
+    /*
+     * Lis la list des operations depuis un fichier et renvoit une arrayList
+     */
+    private ArrayList<String> LireOperationsDepuisFichier(){
+        /*
+         * Read the operations file and keep its content in memory
+         */
+        File file                     = new File("./" + this.pathToOperations);
+        ArrayList<String> operations  = new ArrayList<String>();
+        //ArrayList<String> repartition  = new ArrayList<String>();
+
+        try{
+            if (!file.exists()){
+                System.out.println("Le fichier nexiste pas");
+            }
+
+            if (file.exists()){
+                Scanner scan = new Scanner(file);
+                while (scan.hasNextLine()){
+                    operations.add( scan.nextLine() );
+                }
+                scan.close();
+            }
+        } catch (Exception e){
+            System.out.println("Exception dans la lecture du fichier");
+        }
+        
+        return operations;
+    }
 
     /*
      * Prends une list d'operations a envoyer aux serveurs distants
@@ -192,7 +258,9 @@ public class Client {
         ArrayList<Future<List<Object>>> futures  = new ArrayList<Future<List<Object>>>();
         ExecutorService pool      = Executors.newFixedThreadPool(3);
 
+
         if (!operations.isEmpty()){
+            //System.out.println("\tEnvoyer operations: " + operations.size());
 
             int index          = 0;
             int indexServer    = -1;
@@ -213,6 +281,8 @@ public class Client {
                     indexFin = operations.size() - 1;
                     continuer = false;
                 }
+
+                //System.out.println("\tserveur " + indexServer + ": " + (indexFin - index + 1) + "/" + nbOperationsAEnvoyer);
 
                 // creation dune liste doperations a envoyer au serveur
                 ArrayList<String> subOperations = new ArrayList<String>(operations.subList(index, indexFin + 1));

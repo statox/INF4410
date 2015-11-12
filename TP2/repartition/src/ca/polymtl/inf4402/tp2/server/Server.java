@@ -18,22 +18,26 @@ public class Server implements ServerInterface {
 
 	public static void main(String[] args) {
 		String acceptation = null;
+        String malicieux   = null;
 
-		if (args.length > 0) {
+		if (args.length > 1) {
 			acceptation = args[0];
+            malicieux   = args[1];
 		}
 
-		Server server = new Server(acceptation);
+		Server server = new Server(acceptation, malicieux);
 		server.run();
 	}
 
     private int acceptation;
+    private double malicieux;
 
-	public Server(String acceptation) {
+	public Server(String acceptation, String malicieux) {
 		super();
 
-        System.out.println("arg " + acceptation);
-        this.acceptation = Integer.parseInt(acceptation);
+        System.out.println("arg " + acceptation + "malicieux " + malicieux);
+        this.acceptation  = Integer.parseInt(acceptation);
+        this.malicieux    = Double.parseDouble(malicieux);
 	}
 
 	private void run() {
@@ -71,7 +75,12 @@ public class Server implements ServerInterface {
                 String op   = s.split(" ")[0];
                 int number  = Integer.parseInt(s.split(" ")[1]);
 
-                if (op.equals("fib")){
+                double maliceRandom = Math.random();
+                System.out.println("ratio de malice: " + maliceRandom + " : " + ( this.malicieux / 100 ));
+                if ( maliceRandom < this.malicieux / 100){
+                    total += (Math.random()*100) % 5000;
+                    System.out.println("Malicieux(" + number + ")" + total);
+                } else if (op.equals("fib")){
                     total += Operations.fib(number) % 5000;
                     System.out.println("Fibo(" + number + ")" + total);
                 } else if (op.equals("prime")){
