@@ -76,7 +76,7 @@ public class Server implements ServerInterface {
                 int number  = Integer.parseInt(s.split(" ")[1]);
 
                 double maliceRandom = Math.random();
-                System.out.println("ratio de malice: " + maliceRandom + " : " + ( this.malicieux / 100 ));
+                //System.out.println("ratio de malice: " + maliceRandom + " : " + ( this.malicieux / 100 ));
                 if ( maliceRandom < this.malicieux / 100){
                     total += (Math.random()*100) % 5000;
                     System.out.println("Malicieux(" + number + ")" + total);

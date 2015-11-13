@@ -13,6 +13,8 @@ import java.util.concurrent.Callable;
 import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 import java.io.*;
 
 import ca.polymtl.inf4402.tp2.shared.ServerInterface;
@@ -99,14 +101,115 @@ public class Client {
 		try {
             ArrayList<String> operations  = this.LireOperationsDepuisFichier();
 
+            int nbOperationsExecutees = 0;
+            int nbAcceptedOperations = this.nbAcceptedOperations.get(0);
+            int sum = 0;
+            ExecutorService pool      = Executors.newFixedThreadPool(3);
+            ArrayList<Future<List<Object>>> futures          = new ArrayList<Future<List<Object>>>();
+
             /*
              * Get current time to calculate execution time
              */
             long startTime = System.currentTimeMillis();
 
-            while(){
+            while(nbOperationsExecutees < operations.size()){
+                // Creation du chunk doperations a envoyer
+                int indexFin = nbOperationsExecutees + nbAcceptedOperations;
+                if (indexFin > operations.size())
+                    indexFin = operations.size();
 
+                ArrayList<String> chunk = new ArrayList<String>(operations.subList(nbOperationsExecutees, indexFin));
+                // remise a zero des futures
+                futures.clear();
+
+                System.out.println("envoi des operations " + nbOperationsExecutees + " a " + ( nbOperationsExecutees + nbAcceptedOperations  ));
+
+                // Creation des threads qui calculeront le chunk sur chaque serveur
+                int indexServer = -1;
+                for (ServerInterface server : this.serversPool){
+                    indexServer++;
+                    Callable<List<Object>> callable  = new ClientThread(server, chunk, nbOperationsExecutees, indexServer);
+                    // get the return of the callable
+                    Future<List<Object>> future      = pool.submit(callable);
+                    futures.add(future);
+                }
+
+                // Attente des 3 resultats
+                ArrayList<Integer> resultats = new ArrayList<Integer>();
+                while (resultats.size() < this.serversPool.size()) {
+
+                    // parcours des differents futures
+                    for (int i=0; i<this.serversPool.size(); i++){
+                        Future<List<Object>> future = futures.get(i);
+
+                        // si on a recu le resultat du calcul
+                        if (future != null  && future.isDone()){
+                            //System.out.println("Nouveau resultat (nb resultats: " + resultats.size() + " / " + this.serversPool.size() + ")");
+                            //System.out.println("Nombre de futurs: " + futures.size());
+
+                            int resultat                           = (Integer) future.get().get(0);
+                            ArrayList<String> operationsExecutees  = (ArrayList<String>) future.get().get(1);
+                            indexServer                            = (Integer) future.get().get(2);
+                            // quand le calcul na pas pu etre fait
+                            if (resultat == -1){
+                                //System.out.println("Echec des operations, on les renvoi au serveur " + indexServer);
+                                // on renvoit les operations au serveur et on met a jour le Future
+                                Callable<List<Object>> callable  = new ClientThread(this.serversPool.get(indexServer), operationsExecutees, nbOperationsExecutees, indexServer);
+                                // get the return of the callable
+                                Future<List<Object>> newFuture = pool.submit(callable);
+                                futures.set(i, newFuture);
+                            }else{
+                                //System.out.println("Succes des operations, on obtient: " + resultat);
+                                resultats.add(resultat);
+                                futures.set(i, null);
+                            }
+                        }
+                    }
+                }
+
+                // Hashmap contenant la frequence de chaque resultat
+                HashMap<Integer, Integer> frequences = new HashMap<Integer, Integer>();
+
+                // calcul de la frequence dapparition de chaque resultat
+                for (Integer i : resultats){
+                    // Si la map contient la valeur on lincremente
+                    if (frequences.containsKey(i.intValue())){
+                        frequences.put(i.intValue(), frequences.get(i.intValue())+1);
+                    }else{
+                        // On ajoute la valeur avec 1
+                        frequences.put(i.intValue(), 1);
+                    }
+                }
+
+                // parcours de la map pour recuperer la plus grande frequence
+                int resultat = 0;
+                int maximum = 0;
+                Iterator it = frequences.entrySet().iterator();
+                while(it.hasNext()){
+                    HashMap.Entry pair = (HashMap.Entry)it.next();
+                    Integer val = ( Integer )pair.getValue();
+                    Integer key = ( Integer )pair.getKey();
+
+                    if (val > maximum){
+                        resultat = key;
+                        maximum = val;
+                    }
+                    it.remove();
+                }
+
+                //System.out.println("Resultat choisi: " + resultat);
+                sum = (sum + resultat) % 5000;
+                // mise a jour de lindex des operations a envoyer
+                nbOperationsExecutees = nbOperationsExecutees + nbAcceptedOperations;
             }
+
+            /*
+             * Calculate execution time
+             */
+            long executionTime = System.currentTimeMillis() - startTime;
+            System.out.println("Somme finale: " + sum);
+            System.out.println("Execution time: " + (executionTime / 1000) + "s");
+            System.exit(0);
 
         } catch (Exception e){
             System.out.println("Exception dans le client: " + e.getMessage());
