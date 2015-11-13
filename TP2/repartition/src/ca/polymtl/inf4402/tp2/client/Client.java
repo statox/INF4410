@@ -73,7 +73,7 @@ public class Client {
         if (this.secureMode)
             RepartirCalculsSecurise();
         else
-            RepartirCalculs();
+            RepartirCalculsNonSecurise();
 	}
 
 	private ServerInterface loadServerStub(String hostname) {
@@ -97,7 +97,7 @@ public class Client {
     /*
      * Envoi des operations en mode non securise
      */
-	private void RepartirCalculsSecurise() {
+	private void RepartirCalculsNonSecurise() {
 		try {
             ArrayList<String> operations  = this.LireOperationsDepuisFichier();
 
@@ -110,6 +110,7 @@ public class Client {
             /*
              * Get current time to calculate execution time
              */
+            System.out.println("Lancement mode non securise");
             long startTime = System.currentTimeMillis();
 
             while(nbOperationsExecutees < operations.size()){
@@ -122,7 +123,7 @@ public class Client {
                 // remise a zero des futures
                 futures.clear();
 
-                System.out.println("envoi des operations " + nbOperationsExecutees + " a " + ( nbOperationsExecutees + nbAcceptedOperations  ));
+                //System.out.println("envoi des operations " + nbOperationsExecutees + " a " + ( nbOperationsExecutees + nbAcceptedOperations  ));
 
                 // Creation des threads qui calculeront le chunk sur chaque serveur
                 int indexServer = -1;
@@ -206,7 +207,7 @@ public class Client {
             /*
              * Calculate execution time
              */
-            long executionTime = System.currentTimeMillis() - startTime;
+            double executionTime = System.currentTimeMillis() - startTime;
             System.out.println("Somme finale: " + sum);
             System.out.println("Execution time: " + (executionTime / 1000) + "s");
             System.exit(0);
@@ -221,7 +222,7 @@ public class Client {
     /*
      * Envoi des operations en mode non securise
      */
-	private void RepartirCalculs() {
+	private void RepartirCalculsSecurise() {
 		try {
 
             ArrayList<String> operations  = this.LireOperationsDepuisFichier();
@@ -229,6 +230,7 @@ public class Client {
             /*
              * Get current time to calculate execution time
              */
+            System.out.println("Lancement mode securise");
             long startTime = System.currentTimeMillis();
 	
             /*
@@ -259,9 +261,6 @@ public class Client {
                         ArrayList<String> operationsExecutees  = (ArrayList<String>) future.get().get(1);
                         int indexServer                        = (Integer) future.get().get(2);
 
-                        System.out.println("Operations " + operationsExecutees.size() + " = " + resultat);
-                        for(String s : operationsExecutees)
-                            System.out.println(s);
 
                         // lensemble doperations a ete calcule avec succes
                         if (resultat != -1){ 
@@ -271,7 +270,7 @@ public class Client {
 
                             // On augmente le nombre doperations a envoyer au serveur la prochaine fois
                             this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)+2);
-                            System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
+                            //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
 
                         // lensemble doperation na pas pu etre calcule
                         }else{ 
@@ -282,7 +281,7 @@ public class Client {
                             this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)-2);
                             if (this.nbAcceptedOperations.get(indexServer) < 2) 
                                 this.nbAcceptedOperations.set(indexServer, 2);
-                            System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)");
+                            //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)");
                         }
 
                     // lensemble doperation na pas encore renvoye de resultat
@@ -304,7 +303,7 @@ public class Client {
             /*
              * Calculate execution time
              */
-            long executionTime = System.currentTimeMillis() - startTime;
+            double executionTime = System.currentTimeMillis() - startTime;
             System.out.println("Execution time: " + (executionTime / 1000) + "s");
 
 
