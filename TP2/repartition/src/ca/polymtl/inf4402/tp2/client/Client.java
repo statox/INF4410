@@ -52,17 +52,18 @@ public class Client {
             this.secureMode = true;
 
 
-        // File containing the operations to execute
+        // Fichier contenant les operations a executer
         this.pathToOperations = pathToOperations;
 
-        // Pool of servers to do the calculations
+        // Pool des serveurs qui effectueront les calculs
         this.serversPool = new ArrayList<ServerInterface>();
         serversPool.add(loadServerStub("l4712-08.info.polymtl.ca"));
         serversPool.add(loadServerStub("l4712-09.info.polymtl.ca"));
         serversPool.add(loadServerStub("l4712-10.info.polymtl.ca"));
 
-        // Number of operations accepted by each servers (this list will
-        // be modified over the time)
+        // Liste du nombre d'operations acceptees par chaque serveur
+        // en une requete.
+        // (En mode securise ces valeurs seront modifiees a la volee)
         this.nbAcceptedOperations = new ArrayList<Integer>();
         this.nbAcceptedOperations.add(5);
         this.nbAcceptedOperations.add(5);
@@ -108,7 +109,7 @@ public class Client {
             ArrayList<Future<List<Object>>> futures          = new ArrayList<Future<List<Object>>>();
 
             /*
-             * Get current time to calculate execution time
+             * Recuperation du temps courant pour calculer le temps d'execution
              */
             System.out.println("Lancement mode non securise");
             long startTime = System.currentTimeMillis();
@@ -130,7 +131,7 @@ public class Client {
                 for (ServerInterface server : this.serversPool){
                     indexServer++;
                     Callable<List<Object>> callable  = new ClientThread(server, chunk, nbOperationsExecutees, indexServer);
-                    // get the return of the callable
+                    // Recuperation du retour de chaque callable
                     Future<List<Object>> future      = pool.submit(callable);
                     futures.add(future);
                 }
@@ -156,7 +157,7 @@ public class Client {
                                 //System.out.println("Echec des operations, on les renvoi au serveur " + indexServer);
                                 // on renvoit les operations au serveur et on met a jour le Future
                                 Callable<List<Object>> callable  = new ClientThread(this.serversPool.get(indexServer), operationsExecutees, nbOperationsExecutees, indexServer);
-                                // get the return of the callable
+                                // Recuperation du retour de chaque callable
                                 Future<List<Object>> newFuture = pool.submit(callable);
                                 futures.set(i, newFuture);
                             }else{
@@ -171,7 +172,7 @@ public class Client {
                 // Hashmap contenant la frequence de chaque resultat
                 HashMap<Integer, Integer> frequences = new HashMap<Integer, Integer>();
 
-                // calcul de la frequence dapparition de chaque resultat
+                // calcul de la frequence d'apparition de chaque resultat
                 for (Integer i : resultats){
                     // Si la map contient la valeur on lincremente
                     if (frequences.containsKey(i.intValue())){
@@ -205,7 +206,7 @@ public class Client {
             }
 
             /*
-             * Calculate execution time
+             * Calcul du temps d'execution
              */
             double executionTime = System.currentTimeMillis() - startTime;
             System.out.println("Somme finale: " + sum);
@@ -228,13 +229,13 @@ public class Client {
             ArrayList<String> operations  = this.LireOperationsDepuisFichier();
 
             /*
-             * Get current time to calculate execution time
+             * Recuperation du temps courant pour calculer le temps d'execution
              */
             System.out.println("Lancement mode securise");
             long startTime = System.currentTimeMillis();
 	
             /*
-             * Creation of the thread for each server and call of their method
+             * Creation d'un thread par serveur et appel de leur methode call
              */
             ArrayList<String> operationsAEnvoyer = new ArrayList<String>();
             operationsAEnvoyer.addAll(operations);
@@ -255,14 +256,14 @@ public class Client {
                 ArrayList<String> operationsEchouees = new ArrayList<String>();
 
                 for (Future<List<Object>> future : futures) {
-                    // lensemble doperation a renvoye un resultat
+                    // l'ensemble doperation a renvoye un resultat
                     if (future.isDone() ){ 
                         int resultat                           = (Integer) future.get().get(0);
                         ArrayList<String> operationsExecutees  = (ArrayList<String>) future.get().get(1);
                         int indexServer                        = (Integer) future.get().get(2);
 
 
-                        // lensemble doperations a ete calcule avec succes
+                        // l'ensemble doperations a ete calcule avec succes
                         if (resultat != -1){ 
                             // mise a jour de la somme et du nombre doperations executees
                             sum = (sum + resultat) % 5000;
@@ -272,7 +273,7 @@ public class Client {
                             this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)+2);
                             //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
 
-                        // lensemble doperation na pas pu etre calcule
+                        // l'ensemble doperation na pas pu etre calcule
                         }else{ 
                             // recuperation des operations echouees
                             operationsEchouees.addAll(operationsExecutees);
@@ -284,7 +285,7 @@ public class Client {
                             //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)");
                         }
 
-                    // lensemble doperation na pas encore renvoye de resultat
+                    // l'ensemble doperation na pas encore renvoye de resultat
                     } else { 
                        nextFutures.add(future); 
                     }
@@ -301,7 +302,7 @@ public class Client {
             }
 
             /*
-             * Calculate execution time
+             * Calcul du temps d'execution
              */
             double executionTime = System.currentTimeMillis() - startTime;
             System.out.println("Execution time: " + (executionTime / 1000) + "s");
@@ -318,15 +319,11 @@ public class Client {
 	}
 
     /*
-     * Lis la list des operations depuis un fichier et renvoit une arrayList
+     * Lis la liste des operations depuis un fichier et renvoit une arrayList
      */
     private ArrayList<String> LireOperationsDepuisFichier(){
-        /*
-         * Read the operations file and keep its content in memory
-         */
         File file                     = new File("./" + this.pathToOperations);
         ArrayList<String> operations  = new ArrayList<String>();
-        //ArrayList<String> repartition  = new ArrayList<String>();
 
         try{
             if (!file.exists()){
@@ -348,8 +345,8 @@ public class Client {
     }
 
     /*
-     * Prends une list d'operations a envoyer aux serveurs distants
-     * repartis les oparations sur les differents serveurs
+     * Prends une liste d'operations a envoyer aux serveurs distants
+     * repartis les operations sur les differents serveurs
      *
      * Retourne: Une liste de futures contenant
      *              - Le resultat des operations (peut valoir -1)
@@ -373,12 +370,12 @@ public class Client {
                 int nbOperationsAEnvoyer  = this.nbAcceptedOperations.get(indexServer);
                 int indexFin              = index - 1 + nbOperationsAEnvoyer;
 
-                // Si literation precedente a lance le calcul de la derniere
+                // Si l'iteration precedente a lance le calcul de la derniere
                 // operation on sort de la boucle while
                 if (!continuer)
                     break;
 
-                // On limite lindex des operation a la derniere
+                // On limite l'index des operation a la derniere
                 if (indexFin >= operations.size() - 1){
                     indexFin = operations.size() - 1;
                     continuer = false;
@@ -386,12 +383,12 @@ public class Client {
 
                 //System.out.println("\tserveur " + indexServer + ": " + (indexFin - index + 1) + "/" + nbOperationsAEnvoyer);
 
-                // creation dune liste doperations a envoyer au serveur
+                // creation d'une liste d'operations a envoyer au serveur
                 ArrayList<String> subOperations = new ArrayList<String>(operations.subList(index, indexFin + 1));
 
-                // create a callable with the right server and the new sublist
+                // Creation d'un callable avec le bon serveur et la liste d'operation voulue
                 Callable<List<Object>> callable  = new ClientThread(server, subOperations, index, indexServer);
-                // get the return of the callable
+                // Recuperation du retour du callable
                 Future<List<Object>> future      = pool.submit(callable);
                 futures.add(future);
 
