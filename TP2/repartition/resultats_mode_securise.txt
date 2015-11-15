@@ -1,0 +1,215 @@
+serveurs 2 4 8
+REFUS 118 59 0
+1
+Lancement mode securise
+Execution time: 26.514s
+somme des resultats dans le client: 4172 
+2
+Lancement mode securise
+Execution time: 29.781s
+somme des resultats dans le client: 4172 
+3
+Lancement mode securise
+Execution time: 22.652s
+somme des resultats dans le client: 4172 
+4
+Lancement mode securise
+Execution time: 24.812s
+somme des resultats dans le client: 4172 
+5
+Lancement mode securise
+Execution time: 21.573s
+somme des resultats dans le client: 4172 
+6
+Lancement mode securise
+Execution time: 26.968s
+somme des resultats dans le client: 4172 
+7
+Lancement mode securise
+Execution time: 21.445s
+somme des resultats dans le client: 4172 
+8
+Lancement mode securise
+Execution time: 20.725s
+somme des resultats dans le client: 4172 
+9
+Lancement mode securise
+Execution time: 23.147s
+somme des resultats dans le client: 4172 
+10
+Lancement mode securise
+Execution time: 23.598s
+somme des resultats dans le client: 4172 
+ 
+serveurs  3 6 12
+REFUS 83 0 0
+1
+Lancement mode securise
+Execution time: 21.817s
+somme des resultats dans le client: 4172 
+2
+Lancement mode securise
+Execution time: 26.487s
+somme des resultats dans le client: 4172 
+3
+Lancement mode securise
+Execution time: 26.133s
+somme des resultats dans le client: 4172 
+4
+Lancement mode securise
+Execution time: 20.465s
+somme des resultats dans le client: 4172 
+5
+Lancement mode securise
+Execution time: 30.049s
+somme des resultats dans le client: 4172 
+6
+Lancement mode securise
+Execution time: 26.308s
+somme des resultats dans le client: 4172 
+7
+Lancement mode securise
+Execution time: 28.653s
+somme des resultats dans le client: 4172 
+8
+Lancement mode securise
+Execution time: 25.924s
+somme des resultats dans le client: 4172 
+9
+Lancement mode securise
+Execution time: 22.041s
+somme des resultats dans le client: 4172 
+10
+Lancement mode securise
+Execution time: 28.68s
+somme des resultats dans le client: 4172 
+ 
+serveurs  4 8 16
+REFUS 73 0 0
+1
+Lancement mode securise
+Execution time: 24.369s
+somme des resultats dans le client: 4172 
+2
+Lancement mode securise
+Execution time: 29.325s
+somme des resultats dans le client: 4172 
+3
+Lancement mode securise
+Execution time: 21.393s
+somme des resultats dans le client: 4172 
+4
+Lancement mode securise
+Execution time: 23.53s
+somme des resultats dans le client: 4172 
+5
+Lancement mode securise
+Execution time: 34.696s
+somme des resultats dans le client: 4172 
+6
+Lancement mode securise
+Execution time: 24.585s
+somme des resultats dans le client: 4172 
+7
+Lancement mode securise
+Execution time: 27.732s
+somme des resultats dans le client: 4172 
+8
+Lancement mode securise
+Execution time: 23.469s
+somme des resultats dans le client: 4172 
+9
+Lancement mode securise
+Execution time: 24.797s
+somme des resultats dans le client: 4172 
+10
+Lancement mode securise
+Execution time: 23.039s
+somme des resultats dans le client: 4172 
+ 
+serveurs  5 10 20
+REFUS 0 0 0
+1
+Lancement mode securise
+Execution time: 41.387s
+somme des resultats dans le client: 4172 
+2
+Lancement mode securise
+Execution time: 43.467s
+somme des resultats dans le client: 4172 
+3
+Lancement mode securise
+Execution time: 34.145s
+somme des resultats dans le client: 4172 
+4
+Lancement mode securise
+Execution time: 37.684s
+somme des resultats dans le client: 4172 
+5
+Lancement mode securise
+Execution time: 44.979s
+somme des resultats dans le client: 4172 
+6
+Lancement mode securise
+Execution time: 37.539s
+somme des resultats dans le client: 4172 
+7
+Lancement mode securise
+Execution time: 35.046s
+somme des resultats dans le client: 4172 
+8
+Lancement mode securise
+Execution time: 42.674s
+somme des resultats dans le client: 4172 
+9
+Lancement mode securise
+Execution time: 33.642s
+somme des resultats dans le client: 4172 
+10
+Lancement mode securise
+Execution time: 40.491s
+somme des resultats dans le client: 4172 
+ 
+serveurs  6 12 24
+REFUS 0 0 0
+1
+Lancement mode securise
+Execution time: 38.579s
+somme des resultats dans le client: 4172 
+2
+Lancement mode securise
+Execution time: 42.332s
+somme des resultats dans le client: 4172 
+3
+Lancement mode securise
+Execution time: 37.006s
+somme des resultats dans le client: 4172 
+4
+Lancement mode securise
+Execution time: 39.748s
+somme des resultats dans le client: 4172 
+5
+Lancement mode securise
+Execution time: 40.466s
+somme des resultats dans le client: 4172 
+6
+Lancement mode securise
+Execution time: 35.624s
+somme des resultats dans le client: 4172 
+7
+Lancement mode securise
+Execution time: 40.234s
+somme des resultats dans le client: 4172 
+8
+Lancement mode securise
+Execution time: 34.103s
+somme des resultats dans le client: 4172 
+9
+Lancement mode securise
+Execution time: 36.986s
+somme des resultats dans le client: 4172 
+10
+Lancement mode securise
+Execution time: 35.582s
+somme des resultats dans le client: 4172 
+ 
