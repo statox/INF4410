@@ -26,14 +26,23 @@ public class Client {
 		String pathToServersFile = null;
 		String pathToOperations  = null;
         String secureMode        = null;
+        String verbosity         = null;
 
-		if (args.length > 1) {
+		if (args.length >= 3) {
             secureMode         = args[0];
 			pathToOperations   = args[1];
 			pathToServersFile  = args[2];
-		}
+            verbosity          = "general";
+            if (args.length == 4)
+                verbosity          = args[3]; 
+        } else {
+            System.out.println("Mauvais nombre d'arguments.");
+            System.out.println("Fonctionnement:");
+            System.out.println("client [ns|s] path/to/operations path/to/servers (verbosity_level)");
+            return;
+        }
 
-		Client client = new Client(pathToOperations, secureMode, pathToServersFile);
+		Client client = new Client(pathToOperations, secureMode, pathToServersFile, verbosity);
 
 		client.run();
 	}
@@ -42,8 +51,9 @@ public class Client {
 	private List<Integer> nbAcceptedOperations  = null;
 	private String pathToOperations             = null;
 	private Boolean secureMode                  = null;
+	private String verbosity                    = null;
 
-	public Client(String pathToOperations, String secureMode, String pathToServersFile) {
+	public Client(String pathToOperations, String secureMode, String pathToServersFile, String verbose) {
 		super();
 
 		if (System.getSecurityManager() == null) {
@@ -54,6 +64,12 @@ public class Client {
         if (secureMode.equals("s"))
             this.secureMode = true;
 
+        // definition du niveau de verbosite
+        if (verbose.equals("error") || verbose.equals("verbose")){
+            this.verbosity = verbose;
+        } else {
+            this.verbosity = "general";
+        }
 
         // Fichier contenant les operations a executer
         this.pathToOperations = pathToOperations;
@@ -69,7 +85,7 @@ public class Client {
         File file                     = new File("./" + pathToServersFile);
         try{
             if (!file.exists()){
-                System.out.println("Le fichier nexiste pas");
+                this.print("Le fichier nexiste pas", "error");
             }
 
             if (file.exists()){
@@ -81,7 +97,7 @@ public class Client {
                 scan.close();
             }
         } catch (Exception e){
-            System.out.println("Exception dans la lecture du fichier");
+            this.print("Exception dans la lecture du fichier", "error");
         }
 	}
 
@@ -99,12 +115,12 @@ public class Client {
 			Registry registry = LocateRegistry.getRegistry(hostname);
 			stub = (ServerInterface) registry.lookup("server");
 		} catch (NotBoundException e) {
-			System.out.println("Erreur: Le nom '" + e.getMessage()
+			System.err.println("Erreur: Le nom '" + e.getMessage()
 					+ "' n'est pas défini dans le registre.");
 		} catch (AccessException e) {
-			System.out.println("Erreur: " + e.getMessage());
+			System.err.println("Erreur: " + e.getMessage());
 		} catch (RemoteException e) {
-			System.out.println("Erreur: " + e.getMessage());
+			System.err.println("Erreur: " + e.getMessage());
 		}
 
 		return stub;
@@ -127,7 +143,7 @@ public class Client {
             /*
              * Recuperation du temps courant pour calculer le temps d'execution
              */
-            System.out.println("Lancement mode non securise");
+            this.print("Lancement mode non securise");
             long startTime = System.currentTimeMillis();
 
             while(nbOperationsExecutees < operations.size()){
@@ -140,7 +156,7 @@ public class Client {
                 // remise a zero des futures
                 futures.clear();
 
-                //System.out.println("envoi des operations " + nbOperationsExecutees + " a " + ( nbOperationsExecutees + nbAcceptedOperations  ));
+                this.print("envoi des operations " + nbOperationsExecutees + " a " + ( nbOperationsExecutees + nbAcceptedOperations  ), "verbose");
 
                 // Creation des threads qui calculeront le chunk sur chaque serveur
                 int indexServer = -1;
@@ -167,8 +183,8 @@ public class Client {
 
                         // si on a recu le resultat du calcul
                         if (future != null  && future.isDone()){
-                            //System.out.println("Nouveau resultat (nb resultats: " + resultats.size() + " / " + this.serversPool.size() + ")");
-                            //System.out.println("Nombre de futurs: " + futures.size());
+                            this.print("Nouveau resultat (nb resultats: " + resultats.size() + " / " + this.serversPool.size() + ")", "verbose");
+                            this.print("Nombre de futurs: " + futures.size(), "verbose");
 
                             int resultat                           = (Integer) future.get().get(0);
                             ArrayList<String> operationsExecutees  = (ArrayList<String>) future.get().get(1);
@@ -176,14 +192,14 @@ public class Client {
 
                             // quand le calcul na pas pu etre fait
                             if (resultat == -1){
-                                //System.out.println("Echec des operations, on les renvoi au serveur " + indexServer);
+                                this.print("Echec des operations, on les renvoi au serveur " + indexServer, "verbose");
                                 // on renvoit les operations au serveur et on met a jour le Future
                                 Callable<List<Object>> callable  = new ClientThread(this.serversPool.get(indexServer), operationsExecutees, nbOperationsExecutees, indexServer);
                                 // Recuperation du retour de chaque callable
                                 Future<List<Object>> newFuture = pool.submit(callable);
                                 futures.set(i, newFuture);
                             }else if (resultat == -2){ // Quand le thread a attrape une exception indiquant la mort du serveur
-                                System.out.println("On a perdu le serveur " + indexServer); 
+                                this.print("On a perdu le serveur " + indexServer, "error"); 
                                 
                                 // on annule l'utilisation future du serveur et du future
                                 this.serversPool.set(indexServer, null);
@@ -197,7 +213,7 @@ public class Client {
                                 if (nbExpectedResults == 0)
                                     throw new OutOfServersException("Plus aucun serveur ne repond");
                             }else{
-                                //System.out.println("Succes des operations, on obtient: " + resultat);
+                                this.print("Succes des operations, on obtient: " + resultat, "verbose");
                                 resultats.add(resultat);
                                 futures.set(i, null);
                             }
@@ -221,7 +237,7 @@ public class Client {
 
 
                 // parcours de la map pour recuperer la plus grande frequence
-                //System.out.println("Resultats recuperes:");
+                this.print("Resultats recuperes:", "verbose");
                 int resultat = 0;
                 int maximum = 0;
                 Iterator it = frequences.entrySet().iterator();
@@ -230,7 +246,7 @@ public class Client {
                     Integer val = ( Integer )pair.getValue();
                     Integer key = ( Integer )pair.getKey();
 
-                    //System.out.println(key + ": " + val);
+                    this.print(key + ": " + val, "verbose");
                     if (val > maximum){
                         resultat = key;
                         maximum = val;
@@ -239,7 +255,7 @@ public class Client {
                 }
 
                 sum = (sum + resultat) % 5000;
-                System.out.println("On ajoute " + resultat + ". Somme: " + sum);
+                this.print("On ajoute " + resultat + ". Somme: " + sum, "verbose");
                 // mise a jour de lindex des operations a envoyer
                 nbOperationsExecutees = nbOperationsExecutees + nbAcceptedOperations;
             }
@@ -248,16 +264,15 @@ public class Client {
              * Calcul du temps d'execution
              */
             double executionTime = System.currentTimeMillis() - startTime;
-            System.out.println("Somme finale: " + sum);
-            System.out.println("Execution time: " + (executionTime / 1000) + "s");
+            this.print("Somme finale: " + sum);
+            this.print("Execution time: " + (executionTime / 1000) + "s");
             System.exit(sum);
 
         } catch (OutOfServersException e){
-            System.out.println("Exception dans le client: plus aucun serveur ne repond");
+            this.print("Exception dans le client: plus aucun serveur ne repond");
             System.exit(-1);
         } catch (Exception e){
-            System.out.println("Exception dans le client: " + e.getMessage());
-            System.out.println(e.getCause());
+            this.print("Exception dans le client: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -273,7 +288,7 @@ public class Client {
             /*
              * Recuperation du temps courant pour calculer le temps d'execution
              */
-            System.out.println("Lancement mode securise");
+            this.print("Lancement mode securise");
             long startTime = System.currentTimeMillis();
 	
             /*
@@ -315,10 +330,10 @@ public class Client {
                             this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)-2);
                             if (this.nbAcceptedOperations.get(indexServer) < 2) 
                                 this.nbAcceptedOperations.set(indexServer, 2);
-                            //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)");
+                            this.print("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)", "verbose");
 
                         }else if (resultat == -2){ // Quand le thread a attrape une exception indiquant la mort du serveur
-                            System.out.println("On a perdu le serveur " + indexServer);
+                            this.print("On a perdu le serveur " + indexServer, "error");
 
                             // recuperation des operations echouees pour les traiter
                             // a la prochaine iteration
@@ -339,13 +354,13 @@ public class Client {
                         }else { // l'ensemble doperations a ete calcule avec succes
                             // mise a jour de la somme et du nombre doperations executees
                             sum = (sum + resultat) % 5000;
-                            System.out.println("On ajoute " + resultat + ". Somme: " + sum);
+                            this.print("On ajoute " + resultat + ". Somme: " + sum, "verbose");
 
                             nbOperationsExecutees += operationsExecutees.size();
 
                             // On augmente le nombre doperations a envoyer au serveur la prochaine fois
                             this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)+2);
-                            //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
+                            this.print("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)", "verbose");
                         }
 
                     // l'ensemble doperation na pas encore renvoye de resultat
@@ -368,18 +383,17 @@ public class Client {
              * Calcul du temps d'execution
              */
             double executionTime = System.currentTimeMillis() - startTime;
-            System.out.println("Execution time: " + (executionTime / 1000) + "s");
+            this.print("Execution time: " + (executionTime / 1000) + "s");
 
 
-            System.out.printf("somme des resultats dans le client: " + sum);
+            this.print("somme des resultats dans le client: " + sum);
             System.exit(sum);
 
         } catch (OutOfServersException e){
-            System.out.println("Exception dans le client: plus aucun serveur ne repond");
+            this.print("Exception dans le client: plus aucun serveur ne repond", "error");
             System.exit(-1);
         } catch (Exception e){
-            System.out.println("Exception dans le client: " + e.getMessage());
-            System.out.println(e.getCause());
+            this.print("Exception dans le client: " + e.getMessage(), "error");
             e.printStackTrace();
         }
 	}
@@ -393,7 +407,7 @@ public class Client {
 
         try{
             if (!file.exists()){
-                System.out.println("Le fichier nexiste pas");
+                this.print("Le fichier d operations nexiste pas", "error");
             }
 
             if (file.exists()){
@@ -404,7 +418,7 @@ public class Client {
                 scan.close();
             }
         } catch (Exception e){
-            System.out.println("Exception dans la lecture du fichier");
+            this.print("Exception dans la lecture du fichier", "error");
         }
         
         return operations;
@@ -425,7 +439,7 @@ public class Client {
 
 
         if (!operations.isEmpty()){
-            //System.out.println("\tEnvoyer operations: " + operations.size());
+            this.print("\tEnvoyer operations: " + operations.size(), "verbose");
 
             int index          = 0;
             int indexServer    = -1;
@@ -451,7 +465,7 @@ public class Client {
                         continuer = false;
                     }
 
-                    //System.out.println("\tserveur " + indexServer + ": " + (indexFin - index + 1) + "/" + nbOperationsAEnvoyer);
+                    this.print("\tserveur " + indexServer + ": " + (indexFin - index + 1) + "/" + nbOperationsAEnvoyer, "verbose");
 
                     // creation d'une liste d'operations a envoyer au serveur
                     ArrayList<String> subOperations = new ArrayList<String>(operations.subList(index, indexFin + 1));
@@ -467,5 +481,25 @@ public class Client {
             }
         }
         return futures;
+    }
+
+
+    // Fonction pour limiter l'affichage en fonction du niveau de verbosite choisi
+    private void print(String message, String level){
+        if (this.verbosity.equals("verbose")){
+            System.out.println(message);
+        } else if (this.verbosity.equals("error")){
+            if (level.equals("error") || level.equals("general"))
+                System.out.println(message);
+        } else {
+            if (level.equals("general"))
+                System.out.println(message);
+        }
+
+    }
+
+    // Fonction pour limiter l'affichage en fonction du niveau de verbosite choisi
+    private void print(String message){
+        this.print(message, "general");
     }
 }
