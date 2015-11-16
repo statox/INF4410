@@ -1,0 +1,15 @@
+Possibles améliorations a apporter au système:
+
+Calcul du résultat dans le mode sécurisé:
+On choisi le résultat qui apparait le plus souvent et non celui qui est donné
+par la majorité des serveurs.
+
+Ca veut dire que dans le worst case scénario si tous les serveurs renvoient une
+valeur différente, on choisi la valeur donnée par le dernier serveur sans
+prévenir l'utilisateur que c'est pas forcément fiable
+
+
+Détection des serveurs tués:
+On détecte la mort des serveurs et on arrete de leur faire faire des calculs.
+Par contre dans le cas ou tous les serveurs sont morts on n'essaie pas de
+refaire le calcul avec d'autres
