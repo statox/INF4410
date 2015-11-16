@@ -19,6 +19,7 @@ import java.io.*;
 
 import ca.polymtl.inf4402.tp2.shared.ServerInterface;
 import ca.polymtl.inf4402.tp2.client.ClientThread;
+import ca.polymtl.inf4402.tp2.client.OutOfServersException;
 
 public class Client {
 	public static void main(String[] args) {
@@ -194,7 +195,7 @@ public class Client {
                                         nbExpectedResults++;
                                 }
                                 if (nbExpectedResults == 0)
-                                    throw new Exception("Plus aucun serveur ne repond");
+                                    throw new OutOfServersException("Plus aucun serveur ne repond");
                             }else{
                                 //System.out.println("Succes des operations, on obtient: " + resultat);
                                 resultats.add(resultat);
@@ -249,8 +250,11 @@ public class Client {
             double executionTime = System.currentTimeMillis() - startTime;
             System.out.println("Somme finale: " + sum);
             System.out.println("Execution time: " + (executionTime / 1000) + "s");
-            System.exit(0);
+            System.exit(sum);
 
+        } catch (OutOfServersException e){
+            System.out.println("Exception dans le client: plus aucun serveur ne repond");
+            System.exit(-1);
         } catch (Exception e){
             System.out.println("Exception dans le client: " + e.getMessage());
             System.out.println(e.getCause());
@@ -330,7 +334,7 @@ public class Client {
                                     nbAliveServers++;
                             }
                             if (nbAliveServers == 0)
-                                throw new Exception("Plus aucun serveur ne repond");
+                                throw new OutOfServersException();
 
                         }else { // l'ensemble doperations a ete calcule avec succes
                             // mise a jour de la somme et du nombre doperations executees
@@ -368,8 +372,11 @@ public class Client {
 
 
             System.out.printf("somme des resultats dans le client: " + sum);
-            System.exit(0);
+            System.exit(sum);
 
+        } catch (OutOfServersException e){
+            System.out.println("Exception dans le client: plus aucun serveur ne repond");
+            System.exit(-1);
         } catch (Exception e){
             System.out.println("Exception dans le client: " + e.getMessage());
             System.out.println(e.getCause());
