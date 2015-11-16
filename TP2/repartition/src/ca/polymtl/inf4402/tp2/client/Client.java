@@ -82,14 +82,6 @@ public class Client {
         } catch (Exception e){
             System.out.println("Exception dans la lecture du fichier");
         }
-        //serversPool.add(loadServerStub("l4712-08.info.polymtl.ca"));
-        //serversPool.add(loadServerStub("l4712-09.info.polymtl.ca"));
-        //serversPool.add(loadServerStub("l4712-10.info.polymtl.ca"));
-
-        //this.nbAcceptedOperations = new ArrayList<Integer>();
-        //this.nbAcceptedOperations.add(5);
-        //this.nbAcceptedOperations.add(5);
-        //this.nbAcceptedOperations.add(5);
 	}
 
 	private void run() {
@@ -127,6 +119,7 @@ public class Client {
             int nbOperationsExecutees = 0;
             int nbAcceptedOperations = this.nbAcceptedOperations.get(0);
             int sum = 0;
+            int nbExpectedResults = this.serversPool.size();
             ExecutorService pool      = Executors.newFixedThreadPool(3);
             ArrayList<Future<List<Object>>> futures          = new ArrayList<Future<List<Object>>>();
 
@@ -152,15 +145,20 @@ public class Client {
                 int indexServer = -1;
                 for (ServerInterface server : this.serversPool){
                     indexServer++;
-                    Callable<List<Object>> callable  = new ClientThread(server, chunk, nbOperationsExecutees, indexServer);
-                    // Recuperation du retour de chaque callable
-                    Future<List<Object>> future      = pool.submit(callable);
-                    futures.add(future);
+                    if (server != null){ // Si le serveur n'a pas ete detecte comme tue lors d'une iteration precedente
+                                         // on lui fait lancer le calcul
+                        Callable<List<Object>> callable  = new ClientThread(server, chunk, nbOperationsExecutees, indexServer);
+                        // Recuperation du retour de chaque callable
+                        Future<List<Object>> future      = pool.submit(callable);
+                        futures.add(future);
+                    }else{ // Si il a ete detecte comme mort, on ajoute juste un future qu'on ne traitera pas
+                        futures.add(null);
+                    }
                 }
 
                 // Attente des 3 resultats
                 ArrayList<Integer> resultats = new ArrayList<Integer>();
-                while (resultats.size() < this.serversPool.size()) {
+                while (resultats.size() < nbExpectedResults) {
 
                     // parcours des differents futures
                     for (int i=0; i<this.serversPool.size(); i++){
@@ -174,6 +172,7 @@ public class Client {
                             int resultat                           = (Integer) future.get().get(0);
                             ArrayList<String> operationsExecutees  = (ArrayList<String>) future.get().get(1);
                             indexServer                            = (Integer) future.get().get(2);
+
                             // quand le calcul na pas pu etre fait
                             if (resultat == -1){
                                 //System.out.println("Echec des operations, on les renvoi au serveur " + indexServer);
@@ -182,6 +181,20 @@ public class Client {
                                 // Recuperation du retour de chaque callable
                                 Future<List<Object>> newFuture = pool.submit(callable);
                                 futures.set(i, newFuture);
+                            }else if (resultat == -2){ // Quand le thread a attrape une exception indiquant la mort du serveur
+                                System.out.println("On a perdu le serveur " + indexServer); 
+                                
+                                // on annule l'utilisation future du serveur et du future
+                                this.serversPool.set(indexServer, null);
+                                futures.set(indexServer, null);
+                                // on met a jour le nombre de resultats que l'on va attendre
+                                nbExpectedResults = 0;
+                                for (ServerInterface server : this.serversPool){
+                                    if (server != null)
+                                        nbExpectedResults++;
+                                }
+                                if (nbExpectedResults == 0)
+                                    throw new Exception("Plus aucun serveur ne repond");
                             }else{
                                 //System.out.println("Succes des operations, on obtient: " + resultat);
                                 resultats.add(resultat);
@@ -205,7 +218,9 @@ public class Client {
                     }
                 }
 
+
                 // parcours de la map pour recuperer la plus grande frequence
+                //System.out.println("Resultats recuperes:");
                 int resultat = 0;
                 int maximum = 0;
                 Iterator it = frequences.entrySet().iterator();
@@ -214,6 +229,7 @@ public class Client {
                     Integer val = ( Integer )pair.getValue();
                     Integer key = ( Integer )pair.getKey();
 
+                    //System.out.println(key + ": " + val);
                     if (val > maximum){
                         resultat = key;
                         maximum = val;
@@ -221,8 +237,8 @@ public class Client {
                     it.remove();
                 }
 
-                //System.out.println("Resultat choisi: " + resultat);
                 sum = (sum + resultat) % 5000;
+                System.out.println("On ajoute " + resultat + ". Somme: " + sum);
                 // mise a jour de lindex des operations a envoyer
                 nbOperationsExecutees = nbOperationsExecutees + nbAcceptedOperations;
             }

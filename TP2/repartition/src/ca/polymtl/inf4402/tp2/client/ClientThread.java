@@ -41,9 +41,20 @@ public class ClientThread implements Callable {
             list.add(this.indexServer);
 
             return list;
-        } catch (RemoteException e) {
-            System.out.println("Remote exception dans le thread: " + e.getMessage());
+        //} catch (RemoteException e) {
+        } catch (Exception e) {
+            //System.out.println("\nException dans le thread du serveur " + this.indexServer + ":");
+            //System.out.println(e.getMessage());
+
+            // Si une exception est lancee par la methode d'appel distant, on renvoit -2 en resultat
+            // pour pouvoir traiter le cas dans le Client
+            ArrayList<Object> list = new ArrayList<Object>();
+            list.add(-2);
+            list.add(this.operations);
+            list.add(this.indexServer);
+
+            return list;
         }
-        return null;
+        //return null;
     }
 }
