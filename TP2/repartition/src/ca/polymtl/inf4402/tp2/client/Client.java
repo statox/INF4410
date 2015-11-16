@@ -22,15 +22,17 @@ import ca.polymtl.inf4402.tp2.client.ClientThread;
 
 public class Client {
 	public static void main(String[] args) {
+		String pathToServersFile = null;
 		String pathToOperations  = null;
         String secureMode        = null;
 
 		if (args.length > 1) {
-            secureMode       = args[0];
-			pathToOperations = args[1];
+            secureMode         = args[0];
+			pathToOperations   = args[1];
+			pathToServersFile  = args[2];
 		}
 
-		Client client = new Client(pathToOperations, secureMode);
+		Client client = new Client(pathToOperations, secureMode, pathToServersFile);
 
 		client.run();
 	}
@@ -40,7 +42,7 @@ public class Client {
 	private String pathToOperations             = null;
 	private Boolean secureMode                  = null;
 
-	public Client(String pathToOperations, String secureMode) {
+	public Client(String pathToOperations, String secureMode, String pathToServersFile) {
 		super();
 
 		if (System.getSecurityManager() == null) {
@@ -57,17 +59,37 @@ public class Client {
 
         // Pool des serveurs qui effectueront les calculs
         this.serversPool = new ArrayList<ServerInterface>();
-        serversPool.add(loadServerStub("l4712-08.info.polymtl.ca"));
-        serversPool.add(loadServerStub("l4712-09.info.polymtl.ca"));
-        serversPool.add(loadServerStub("l4712-10.info.polymtl.ca"));
-
         // Liste du nombre d'operations acceptees par chaque serveur
         // en une requete.
         // (En mode securise ces valeurs seront modifiees a la volee)
         this.nbAcceptedOperations = new ArrayList<Integer>();
-        this.nbAcceptedOperations.add(5);
-        this.nbAcceptedOperations.add(5);
-        this.nbAcceptedOperations.add(5);
+
+        // chargement des serveurs
+        File file                     = new File("./" + pathToServersFile);
+        try{
+            if (!file.exists()){
+                System.out.println("Le fichier nexiste pas");
+            }
+
+            if (file.exists()){
+                Scanner scan = new Scanner(file);
+                while (scan.hasNextLine()){
+                    serversPool.add(loadServerStub( scan.nextLine() ));
+                    this.nbAcceptedOperations.add(5);
+                }
+                scan.close();
+            }
+        } catch (Exception e){
+            System.out.println("Exception dans la lecture du fichier");
+        }
+        //serversPool.add(loadServerStub("l4712-08.info.polymtl.ca"));
+        //serversPool.add(loadServerStub("l4712-09.info.polymtl.ca"));
+        //serversPool.add(loadServerStub("l4712-10.info.polymtl.ca"));
+
+        //this.nbAcceptedOperations = new ArrayList<Integer>();
+        //this.nbAcceptedOperations.add(5);
+        //this.nbAcceptedOperations.add(5);
+        //this.nbAcceptedOperations.add(5);
 	}
 
 	private void run() {
