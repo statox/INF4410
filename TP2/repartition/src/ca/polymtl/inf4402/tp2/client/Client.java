@@ -301,19 +301,10 @@ public class Client {
                         int indexServer                        = (Integer) future.get().get(2);
 
 
-                        // l'ensemble doperations a ete calcule avec succes
-                        if (resultat != -1){ 
-                            // mise a jour de la somme et du nombre doperations executees
-                            sum = (sum + resultat) % 5000;
-                            nbOperationsExecutees += operationsExecutees.size();
 
-                            // On augmente le nombre doperations a envoyer au serveur la prochaine fois
-                            this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)+2);
-                            //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
-
-                        // l'ensemble doperation na pas pu etre calcule
-                        }else{ 
-                            // recuperation des operations echouees
+                        if (resultat == -1){ // l'ensemble doperation na pas pu etre calcule
+                            // recuperation des operations echouees pour les traiter
+                            // a la prochaine iteration
                             operationsEchouees.addAll(operationsExecutees);
 
                             // On diminue le nombre doperations a envoyer au serveur la prochaine fois
@@ -321,6 +312,36 @@ public class Client {
                             if (this.nbAcceptedOperations.get(indexServer) < 2) 
                                 this.nbAcceptedOperations.set(indexServer, 2);
                             //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(-2)");
+
+                        }else if (resultat == -2){ // Quand le thread a attrape une exception indiquant la mort du serveur
+                            System.out.println("On a perdu le serveur " + indexServer);
+
+                            // recuperation des operations echouees pour les traiter
+                            // a la prochaine iteration
+                            operationsEchouees.addAll(operationsExecutees);
+
+                            // on annule l'utilisation future du serveur
+                            this.serversPool.set(indexServer, null);
+
+                            // on calcule le nombre de serveurs fonctionnels
+                            int nbAliveServers = 0;
+                            for (ServerInterface server : this.serversPool){
+                                if (server != null)
+                                    nbAliveServers++;
+                            }
+                            if (nbAliveServers == 0)
+                                throw new Exception("Plus aucun serveur ne repond");
+
+                        }else { // l'ensemble doperations a ete calcule avec succes
+                            // mise a jour de la somme et du nombre doperations executees
+                            sum = (sum + resultat) % 5000;
+                            System.out.println("On ajoute " + resultat + ". Somme: " + sum);
+
+                            nbOperationsExecutees += operationsExecutees.size();
+
+                            // On augmente le nombre doperations a envoyer au serveur la prochaine fois
+                            this.nbAcceptedOperations.set(indexServer, this.nbAcceptedOperations.get(indexServer)+2);
+                            //System.out.println("Serveur " + indexServer + " " + this.nbAcceptedOperations.get(indexServer) + "(+2)");
                         }
 
                     // l'ensemble doperation na pas encore renvoye de resultat
@@ -408,29 +429,34 @@ public class Client {
                 int nbOperationsAEnvoyer  = this.nbAcceptedOperations.get(indexServer);
                 int indexFin              = index - 1 + nbOperationsAEnvoyer;
 
-                // Si l'iteration precedente a lance le calcul de la derniere
-                // operation on sort de la boucle while
-                if (!continuer)
-                    break;
+                // Si le serveur a utilise a ete detecte comme tue lors d'un
+                // precedente iteration, on passe directement au suivant
+                if (server != null)
+                {
+                    // Si l'iteration precedente a lance le calcul de la derniere
+                    // operation on sort de la boucle while
+                    if (!continuer)
+                        break;
 
-                // On limite l'index des operation a la derniere
-                if (indexFin >= operations.size() - 1){
-                    indexFin = operations.size() - 1;
-                    continuer = false;
+                    // On limite l'index des operation a la derniere
+                    if (indexFin >= operations.size() - 1){
+                        indexFin = operations.size() - 1;
+                        continuer = false;
+                    }
+
+                    //System.out.println("\tserveur " + indexServer + ": " + (indexFin - index + 1) + "/" + nbOperationsAEnvoyer);
+
+                    // creation d'une liste d'operations a envoyer au serveur
+                    ArrayList<String> subOperations = new ArrayList<String>(operations.subList(index, indexFin + 1));
+
+                    // Creation d'un callable avec le bon serveur et la liste d'operation voulue
+                    Callable<List<Object>> callable  = new ClientThread(server, subOperations, index, indexServer);
+                    // Recuperation du retour du callable
+                    Future<List<Object>> future      = pool.submit(callable);
+                    futures.add(future);
+
+                    index = indexFin + 1;
                 }
-
-                //System.out.println("\tserveur " + indexServer + ": " + (indexFin - index + 1) + "/" + nbOperationsAEnvoyer);
-
-                // creation d'une liste d'operations a envoyer au serveur
-                ArrayList<String> subOperations = new ArrayList<String>(operations.subList(index, indexFin + 1));
-
-                // Creation d'un callable avec le bon serveur et la liste d'operation voulue
-                Callable<List<Object>> callable  = new ClientThread(server, subOperations, index, indexServer);
-                // Recuperation du retour du callable
-                Future<List<Object>> future      = pool.submit(callable);
-                futures.add(future);
-
-                index = indexFin + 1;
             }
         }
         return futures;
