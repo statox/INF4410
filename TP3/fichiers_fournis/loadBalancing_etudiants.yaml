@@ -1,0 +1,44 @@
+heat_template_version: 2014-10-16
+
+description: A template to deploy a load balanced web server
+
+parameters:
+  image:
+    type: string
+    description: Image utilisee pour les serveurs
+    default: INF4410-Ubuntu-trusty-mini
+
+  flavor:
+    type: string
+    description: Flavor utilisee par les serveurs
+    default: INF4410-mini
+
+  subnet_id:
+    type: string
+    description: Sous-reseau dans lequel le load balancer sera situe
+    default: d8d8de97-5305-455b-8b98-b7508578305f
+
+resources:
+  web_nodes:
+      type: OS::Heat::ResourceGroup
+      properties:
+      #A completer
+
+
+  pool:
+      type: OS::Neutron::Pool
+      #A completer
+
+  lbalancer:
+      type: OS::Neutron::LoadBalancer
+      #A completer
+
+  monitor:
+      type: OS::Neutron::HealthMonitor
+      properties:
+
+
+outputs:
+  pool_ip_address:
+    value: {get_attr: [pool, vip, address]}
+    description: The IP address of the load balancing pool
