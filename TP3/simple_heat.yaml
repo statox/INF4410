@@ -1,0 +1,66 @@
+heat_template_version: 2014-10-16
+
+description: A template to deploy a load balanced web server
+
+parameters:
+    image:
+        type: string
+        description: Image utilisee pour les serveurs
+        default: INF4410-Ubuntu-trusty-mini
+
+    flavor:
+        type: string
+        description: Flavor utilisee par les serveurs
+        default: INF4410-mini
+
+    subnet_id:
+        type: string
+        description: Sous-reseau dans lequel le load balancer sera situe (INF4410-25-net)
+        default: e844531b-4373-4b97-aaf7-e4d7be658840
+
+
+resources:
+    my_instance:
+        type: OS::Nova::Server
+        properties:
+            admin_pass: root
+            key_name: key
+            image: {get_param: image}
+            flavor: {get_param: flavor}
+            networks:
+                - network: {get_param: subnet_id}
+            user_data:
+                str_replace:
+                    template: |
+                        #!/bin/bash
+
+                        # reponses au questions de mysql-server-5.5 et de phpmyadmin en utilisant les outils fournis dans le paquage debconf-utils
+
+                        debconf-set-selections <<< 'mysql-server mysql-server/root_password password $rootPassword'
+                        debconf-set-selections <<< 'mysql-server mysql-server/root_password_again password $rootPassword'
+
+
+                        debconf-set-selections <<< 'phpmyadmin phpmyadmin/dbconfig-install boolean true'                
+                        debconf-set-selections <<< 'phpmyadmin phpmyadmin/app-password-confirm password $rootPassword'   
+                        debconf-set-selections <<< 'phpmyadmin phpmyadmin/mysql/admin-pass password $rootPassword'  
+                        debconf-set-selections <<< 'phpmyadmin phpmyadmin/mysql/app-pass password $rootPassword'      
+                        debconf-set-selections <<< 'phpmyadmin phpmyadmin/setup-password password $rootPassword'    
+                        debconf-set-selections <<< 'phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2'    
+
+                        # -----------------------------------
+
+                        # installation de mysql-server, mysql-client, apache2,  php5, libapache2-mod-php5, php5-mysql, phpmyadmin. Dans le meme ordre
+                        apt-get -y install mysql-server mysql-client apache2 php5 libapache2-mod-php5 php5-mysql phpmyadmin
+
+                        echo "Include /etc/phpmyadmin/apache.conf" | sudo tee --append /etc/apache2/apache2.conf
+                        service apache2 restart
+                        touch /var/tmp/fichier_cree_a_linstall
+                    params:
+                        $rootPassword: root
+
+                 
+
+outputs:
+    server_networks:
+        description: The networks of the deployed server
+        value: { get_attr: [my_instance, networks] }
