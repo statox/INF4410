@@ -1,0 +1,44 @@
+heat_template_version: 2014-10-16
+
+description: A template to deploy a load balanced web server
+
+parameters:
+    image:
+        type: string
+        description: Image utilisee pour les serveurs
+        default: INF4410-Ubuntu-trusty-mini
+
+    flavor:
+        type: string
+        description: Flavor utilisee par les serveurs
+        default: INF4410-mini
+
+    subnet_id:
+        type: string
+        description: Sous-reseau dans lequel le load balancer sera situe (INF4410-25-net)
+        default: e844531b-4373-4b97-aaf7-e4d7be658840
+
+
+resources:
+    my_instance:
+        type: OS::Nova::Server
+        properties:
+            admin_pass: root
+            key_name: key
+            image: {get_param: image}
+            flavor: {get_param: flavor}
+            networks:
+                - network: {get_param: subnet_id}
+            user_data:
+                str_replace:
+                    template: |
+                        #!/bin/bash
+                        wget http://secretaire.dorsal.polymtl.ca/~hdaoud/infonuagique/server.py
+                        python server.py &
+                    params:
+                        $rootPassword: root
+
+outputs:
+    server_networks:
+        description: The networks of the deployed server
+        value: { get_attr: [my_instance, networks] }
