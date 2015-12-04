@@ -1,0 +1,83 @@
+heat_template_version: 2014-10-16
+
+description: A template to deploy a load balanced web server
+
+parameters:
+    image:
+        type: string
+        description: Image utilisee pour les serveurs
+        default: INF4410-Ubuntu-trusty-mini
+
+    flavor:
+        type: string
+        description: Flavor utilisee par les serveurs
+        default: INF4410-mini
+
+    subnet_id:
+        type: string
+        description: Sous-reseau dans lequel le load balancer sera situe (INF4410-25-net)
+        default: e844531b-4373-4b97-aaf7-e4d7be658840
+
+resources:
+    web_nodes:
+        type: OS::Heat::ResourceGroup
+        properties:
+            count: 2
+            resource_def:
+                type: OS::Nova::Server
+                properties:
+                    admin_pass: root
+                    key_name: key
+                    image: {get_param: image}
+                    flavor: {get_param: flavor}
+                    networks:
+                        - network: {get_param: subnet_id}
+                    user_data:
+                        str_replace:
+                            template: |
+                                #!/bin/bash
+                                wget http://secretaire.dorsal.polymtl.ca/~hdaoud/infonuagique/server.py
+                                python server.py &
+                            params:
+                                $rootPassword: root
+
+
+
+    pool:
+        type: OS::Neutron::Pool
+        properties:
+            protocol: HTTP
+            monitors: [{get_resource: monitor}]
+            subnet_id: c8357b66-60c4-47d8-9e5b-3a9f3a201669
+            lb_method: ROUND_ROBIN
+            vip:
+                protocol_port: 8000
+
+    lbalancer:
+        type: OS::Neutron::LoadBalancer
+        properties:
+            protocol_port: 8000
+            pool_id: {get_resource: pool}
+            #members: [{get_resource: web_nodes}]
+            members: {get_attr: [ web_nodes, refs ]}
+
+    monitor:
+        type: OS::Neutron::HealthMonitor
+        properties:
+            type: TCP
+            delay: 5
+            max_retries: 5
+            timeout: 5
+
+    # assign a floating ip address to the load balancer
+    # pool.
+    #lb_floating:
+        #type: OS::Neutron::FloatingIP
+        #properties:
+            #floating_network_id: 0c3b1354-d3d5-4fec-86d3-19d4d1f13785
+            #port_id: {get_attr: [pool, vip, port_id]}
+
+outputs:
+    pool_ip_address:
+        value: {get_attr: [pool, vip, address]}
+        description: The IP address of the load balancing pool
