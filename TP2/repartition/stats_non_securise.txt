@@ -1,0 +1,4 @@
+serveur     total   refus   taux    operations
+1           645     42      93      510
+2           1144    295     346     503
+3           5355    2401    2452    502 

@@ -16,7 +16,7 @@ parameters:
   subnet_id:
     type: string
     description: Sous-reseau dans lequel le load balancer sera situe
-    default: d8d8de97-5305-455b-8b98-b7508578305f
+    default: e844531b-4373-4b97-aaf7-e4d7be658840
 
 resources:
   web_nodes:

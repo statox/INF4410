@@ -1,0 +1,245 @@
+serveurs  2
+q :  2    4    8
+1
+Lancement mode securise
+Execution time: 23.05s
+somme des resultats dans le client: 4172
+Temps dexecution:  23
+Temps total:  23
+ 
+2
+Lancement mode securise
+Execution time: 25.08s
+somme des resultats dans le client: 4172
+Temps dexecution:  25
+Temps total:  48
+ 
+3
+Lancement mode securise
+Execution time: 26.718s
+somme des resultats dans le client: 4172
+Temps dexecution:  26
+Temps total:  74
+ 
+4
+Lancement mode securise
+Execution time: 30.695s
+somme des resultats dans le client: 4172
+Temps dexecution:  30
+Temps total:  104
+ 
+5
+Lancement mode securise
+Execution time: 22.228s
+somme des resultats dans le client: 4172
+Temps dexecution:  22
+Temps total:  126
+ 
+serveur 
+server1    367    35    90  :  242
+server2    237    21    71  :  145
+server3    176    15    43  :  118
+ 
+Temps moyen:  25
+ 
+ 
+=======================================
+ 
+ 
+ 
+serveurs  3
+q :  3    6    12
+1
+Lancement mode securise
+Execution time: 18.632s
+somme des resultats dans le client: 4172
+Temps dexecution:  18
+Temps total:  18
+ 
+2
+Lancement mode securise
+Execution time: 30.738s
+somme des resultats dans le client: 4172
+Temps dexecution:  30
+Temps total:  48
+ 
+3
+Lancement mode securise
+Execution time: 20.887s
+somme des resultats dans le client: 4172
+Temps dexecution:  20
+Temps total:  68
+ 
+4
+Lancement mode securise
+Execution time: 21.647s
+somme des resultats dans le client: 4172
+Temps dexecution:  21
+Temps total:  89
+ 
+5
+Lancement mode securise
+Execution time: 27.746s
+somme des resultats dans le client: 4172
+Temps dexecution:  27
+Temps total:  116
+ 
+serveur 
+server1    264    43    79  :  142
+server2    267    19    70  :  178
+server3    151    0    19  :  132
+ 
+Temps moyen:  23
+ 
+ 
+=======================================
+ 
+ 
+ 
+serveurs  4
+q :  4    8    16
+1
+Lancement mode securise
+Execution time: 24.881s
+somme des resultats dans le client: 4172
+Temps dexecution:  24
+Temps total:  24
+ 
+2
+Lancement mode securise
+Execution time: 24.04s
+somme des resultats dans le client: 4172
+Temps dexecution:  24
+Temps total:  48
+ 
+3
+Lancement mode securise
+Execution time: 16.531s
+somme des resultats dans le client: 4172
+Temps dexecution:  16
+Temps total:  64
+ 
+4
+Lancement mode securise
+Execution time: 34.19s
+somme des resultats dans le client: 4172
+Temps dexecution:  34
+Temps total:  98
+ 
+5
+Lancement mode securise
+Execution time: 18.478s
+somme des resultats dans le client: 4172
+Temps dexecution:  18
+Temps total:  116
+ 
+serveur 
+server1    195    30    55  :  110
+server2    248    15    60  :  173
+server3    203    0    23  :  180
+ 
+Temps moyen:  23
+ 
+ 
+=======================================
+ 
+ 
+ 
+serveurs  5
+q :  5    10    20
+1
+Lancement mode securise
+Execution time: 22.792s
+somme des resultats dans le client: 4172
+Temps dexecution:  22
+Temps total:  22
+ 
+2
+Lancement mode securise
+Execution time: 25.095s
+somme des resultats dans le client: 4172
+Temps dexecution:  25
+Temps total:  47
+ 
+3
+Lancement mode securise
+Execution time: 27.199s
+somme des resultats dans le client: 4172
+Temps dexecution:  27
+Temps total:  74
+ 
+4
+Lancement mode securise
+Execution time: 22.604s
+somme des resultats dans le client: 4172
+Temps dexecution:  22
+Temps total:  96
+ 
+5
+Lancement mode securise
+Execution time: 31.931s
+somme des resultats dans le client: 4172
+Temps dexecution:  31
+Temps total:  127
+ 
+serveur 
+server1    162    27    47  :  88
+server2    306    0    42  :  264
+server3    167    0    15  :  152
+ 
+Temps moyen:  25
+ 
+ 
+=======================================
+ 
+ 
+ 
+serveurs  6
+q :  6    12    24
+1
+Lancement mode securise
+Execution time: 26.487s
+somme des resultats dans le client: 4172
+Temps dexecution:  26
+Temps total:  26
+ 
+2
+Lancement mode securise
+Execution time: 24.644s
+somme des resultats dans le client: 4172
+Temps dexecution:  24
+Temps total:  50
+ 
+3
+Lancement mode securise
+Execution time: 24.509s
+somme des resultats dans le client: 4172
+Temps dexecution:  24
+Temps total:  74
+ 
+4
+Lancement mode securise
+Execution time: 22.434s
+somme des resultats dans le client: 4172
+Temps dexecution:  22
+Temps total:  96
+ 
+5
+Lancement mode securise
+Execution time: 31.844s
+somme des resultats dans le client: 4172
+Temps dexecution:  31
+Temps total:  127
+ 
+serveur 
+server1    157    25    45  :  87
+server2    275    0    37  :  238
+server3    161    0    15  :  146
+ 
+Temps moyen:  25
+ 
+ 
+=======================================
+ 
+ 
+ 

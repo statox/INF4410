@@ -92,7 +92,7 @@ public class Client {
                 Scanner scan = new Scanner(file);
                 while (scan.hasNextLine()){
                     serversPool.add(loadServerStub( scan.nextLine() ));
-                    this.nbAcceptedOperations.add(5);
+                    this.nbAcceptedOperations.add(10);
                 }
                 scan.close();
             }
@@ -382,12 +382,15 @@ public class Client {
             /*
              * Calcul du temps d'execution
              */
-            double executionTime = System.currentTimeMillis() - startTime;
-            this.print("Execution time: " + (executionTime / 1000) + "s");
+            double endTime = System.currentTimeMillis();
+            double executionTime = endTime - startTime;
+            executionTime = executionTime / 1000;
+            int retour = (int) executionTime;
 
-
+            this.print("Execution time: " + (executionTime) + "s");
             this.print("somme des resultats dans le client: " + sum);
-            System.exit(sum);
+            //System.exit(sum);
+            System.exit(retour);
 
         } catch (OutOfServersException e){
             this.print("Exception dans le client: plus aucun serveur ne repond", "error");
