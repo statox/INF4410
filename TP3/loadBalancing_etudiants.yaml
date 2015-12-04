@@ -41,8 +41,6 @@ resources:
                             params:
                                 $rootPassword: root
 
-
-
     pool:
         type: OS::Neutron::Pool
         properties:
@@ -58,24 +56,15 @@ resources:
         properties:
             protocol_port: 8000
             pool_id: {get_resource: pool}
-            #members: [{get_resource: web_nodes}]
             members: {get_attr: [ web_nodes, refs ]}
 
     monitor:
         type: OS::Neutron::HealthMonitor
         properties:
             type: TCP
-            delay: 5
-            max_retries: 5
-            timeout: 5
-
-    # assign a floating ip address to the load balancer
-    # pool.
-    #lb_floating:
-        #type: OS::Neutron::FloatingIP
-        #properties:
-            #floating_network_id: 0c3b1354-d3d5-4fec-86d3-19d4d1f13785
-            #port_id: {get_attr: [pool, vip, port_id]}
+            delay: 11
+            max_retries: 2
+            timeout: 8
 
 outputs:
     pool_ip_address:
