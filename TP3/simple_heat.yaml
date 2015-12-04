@@ -54,7 +54,6 @@ resources:
 
                         echo "Include /etc/phpmyadmin/apache.conf" | sudo tee --append /etc/apache2/apache2.conf
                         service apache2 restart
-                        touch /var/tmp/fichier_cree_a_linstall
                     params:
                         $rootPassword: root
 
